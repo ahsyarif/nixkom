@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import { getPosts, postUrl } from '../lib/site';
+
+const posts = await getPosts();
+const years = Map.groupBy(posts, (p) => p.data.date.getFullYear());
+const two = (n: number) => String(n).padStart(2, '0');
+const mon = (d: Date) => d.toLocaleDateString('en-US', { month: 'short' });
+---
+<Base title="Archives">
+  <h1 class="dynamic-title">Archives</h1>
+  <div id="archives">
+    {[...years].map(([year, ps]) => (
+      <>
+        <time class="year">{year}</time>
+        <ul class="plain-list">
+          {ps.map((p) => (
+            <li>
+              <span class="date day">{two(p.data.date.getDate())}</span>
+              <span class="date month small-text muted">{mon(p.data.date)}</span>
+              <a href={postUrl(p)}>{p.data.title}</a>
+            </li>
+          ))}
+        </ul>
+      </>
+    ))}
+  </div>
+</Base>

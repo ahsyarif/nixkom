@@ -1,0 +1,44 @@
+---
+import Icon from './Icon.astro';
+import { fmtDate, isoDate, postUrl, summary, type Post } from '../lib/site';
+const { posts, prevUrl, nextUrl, current, total } = Astro.props as {
+  posts: Post[]; prevUrl?: string; nextUrl?: string; current: number; total: number;
+};
+---
+<div id="post-list">
+  {posts.length === 0 && <p class="muted">No posts yet.</p>}
+  {posts.map((p) => (
+    <article class="post-card">
+      <a href={postUrl(p)} class="post-preview">
+        <div>
+          <h2 class="post-card-title">{p.data.title}</h2>
+          <div class="post-card-summary"><p>{summary(p, 200)}</p></div>
+          <div class="post-meta muted">
+            <div class="meta-left">
+              <span class="meta-item">
+                <Icon name="calendar" size={13} />
+                <time datetime={isoDate(p.data.date)}>{fmtDate(p.data.date)}</time>
+              </span>
+              {p.data.categories.length > 0 && (
+                <span class="meta-item"><Icon name="folder" size={13} /><span>{p.data.categories.join(', ')}</span></span>
+              )}
+            </div>
+            {p.data.pin && (
+              <div class="pin">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+                <span>Pinned</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </a>
+    </article>
+  ))}
+</div>
+{total > 1 && (
+  <nav class="pagination" aria-label="Page Navigation">
+    {prevUrl ? <a href={prevUrl} class="page-btn">‹</a> : <span class="page-btn disabled">‹</span>}
+    <span class="page-info">{current} / {total}</span>
+    {nextUrl ? <a href={nextUrl} class="page-btn">›</a> : <span class="page-btn disabled">›</span>}
+  </nav>
+)}

@@ -1,0 +1,33 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { getPosts, terms, postUrl, fmtDate, isoDate } from '../../lib/site';
+
+const cats = terms(await getPosts(), 'categories');
+---
+<Base title="Categories">
+  <h1 class="dynamic-title">Categories</h1>
+  <div class="category-list">
+    {cats.length === 0 && <p class="muted">No categories yet.</p>}
+    {cats.map((c) => (
+      <div class="category-card">
+        <div class="category-card-header">
+          <span>
+            <Icon name="folder" />
+            <a href={`/categories/${c.slug}/`}>{c.name}</a>
+            <span class="muted small-text">{c.posts.length} {c.posts.length === 1 ? 'post' : 'posts'}</span>
+          </span>
+          <a href={`/categories/${c.slug}/`} class="category-trigger" aria-label={`View ${c.name}`}><Icon name="chevron" size={15} /></a>
+        </div>
+        <ul class="category-posts plain-list">
+          {c.posts.slice(0, 5).map((p) => (
+            <li>
+              <a href={postUrl(p)}>{p.data.title}</a>
+              <time class="muted small-text" datetime={isoDate(p.data.date)}>{fmtDate(p.data.date)}</time>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+</Base>

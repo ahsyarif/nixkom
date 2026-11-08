@@ -1,0 +1,28 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { getPosts, terms, postUrl, fmtDate, isoDate } from '../../lib/site';
+
+export async function getStaticPaths() {
+  return terms(await getPosts(), 'categories').map((t) => ({ params: { term: t.slug }, props: t }));
+}
+const { name, posts } = Astro.props;
+---
+<Base title={name} crumbs={[{ name: 'Categories', href: '/categories/' }]}>
+  <div id="page-term">
+    <h1 class="term-heading">
+      <Icon name="folder" size={20} />
+      {name}
+      <span class="term-count muted">{posts.length}</span>
+    </h1>
+    <ul class="term-post-list plain-list">
+      {posts.map((p) => (
+        <li>
+          <a href={postUrl(p)}>{p.data.title}</a>
+          <span class="dash"></span>
+          <time class="muted small-text" datetime={isoDate(p.data.date)}>{fmtDate(p.data.date)}</time>
+        </li>
+      ))}
+    </ul>
+  </div>
+</Base>

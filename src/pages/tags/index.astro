@@ -1,0 +1,13 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts, terms } from '../../lib/site';
+
+const tags = terms(await getPosts(), 'tags');
+---
+<Base title="Tags">
+  <h1 class="dynamic-title">Tags</h1>
+  <div id="tags">
+    {tags.length === 0 && <p class="muted">No tags yet.</p>}
+    {tags.map((t) => <a class="tag" href={`/tags/${t.slug}/`}>{t.name}<span class="muted">{t.posts.length}</span></a>)}
+  </div>
+</Base>

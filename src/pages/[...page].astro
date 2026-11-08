@@ -1,0 +1,17 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../layouts/Base.astro';
+import PostList from '../components/PostList.astro';
+import { SITE, getPosts } from '../lib/site';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = await getPosts(); // already newest first; sort is stable, so pinned-first keeps date order
+  posts.sort((a, b) => +b.data.pin - +a.data.pin);
+  return paginate(posts, { pageSize: SITE.pageSize });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+<Base>
+  <PostList posts={page.data} prevUrl={page.url.prev} nextUrl={page.url.next} current={page.currentPage} total={page.lastPage} />
+</Base>

@@ -1,0 +1,78 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { SITE, getPosts, postUrl, slug, fmtDate, isoDate, readingTime, wordCount } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  const numeric = posts.find((p) => /^\d+$/.test(p.id));
+  if (numeric) throw new Error(`Post id "${numeric.id}" would shadow /posts/${numeric.id}/ pagination; rename the file`);
+  return posts.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, newer: posts[i - 1], older: posts[i + 1] },
+  }));
+}
+
+const { post, newer, older } = Astro.props;
+const { Content, headings } = await render(post);
+const { title, description, date, categories, tags } = post.data;
+---
+<Base title={title} description={description} crumbs={[{ name: 'Posts', href: '/posts/' }]} headings={headings}>
+  <article class="post-single">
+    <header class="post-header">
+      <h1 class="dynamic-title">{title}</h1>
+      {description && <div class="post-desc">{description}</div>}
+      <div class="post-meta muted">
+        <div class="post-meta-dates">
+          <span>Posted <time datetime={isoDate(date)}>{fmtDate(date)}</time></span>
+        </div>
+        <div class="post-byline">
+          <span>By <em><a href="/about/">{SITE.author}</a></em></span>
+          <span class="readtime" title={`${wordCount(post)} words`}>{readingTime(post)} min read</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="post-content"><Content /></div>
+
+    <div class="post-tail-wrapper muted">
+      {categories.length > 0 && (
+        <div class="post-meta">
+          <Icon name="folder" size={15} />
+          {categories.map((c, i) => <>{i > 0 && ', '}<a href={`/categories/${slug(c)}/`}>{c}</a></>)}
+        </div>
+      )}
+      {tags.length > 0 && (
+        <div class="post-tags">
+          <Icon name="tags" size={15} />
+          {tags.map((t) => <a href={`/tags/${slug(t)}/`} class="post-tag">{t}</a>)}
+        </div>
+      )}
+
+      <div class="post-tail-bottom">
+        <div class="license-wrapper">
+          This post is licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> by the author.
+        </div>
+        <div class="share-wrapper">
+          <span class="share-label">Share</span>
+          <button type="button" class="share-btn" onclick="navigator.clipboard.writeText(window.location.href); this.title='Link copied!';" aria-label="Copy link" title="Copy link">
+            <Icon name="link" size={15} />
+          </button>
+        </div>
+      </div>
+
+      <nav class="post-navigation" aria-label="Further Reading">
+        {[['OLDER', older], ['NEWER', newer]].map(([label, p]: any) =>
+          p ? (
+            <a href={postUrl(p)} class="post-nav-card" aria-label={`${label[0] + label.slice(1).toLowerCase()}: ${p.data.title}`}>
+              <span class="nav-label">{label}</span><p>{p.data.title}</p>
+            </a>
+          ) : (
+            <div class="post-nav-card disabled"><span class="nav-label">{label}</span><p>-</p></div>
+          )
+        )}
+      </nav>
+    </div>
+  </article>
+</Base>
