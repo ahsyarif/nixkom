@@ -785,8 +785,12 @@ a:hover {
   text-align: left;
 }
 
-.post-content td code {
+.post-content td:first-child code {
   white-space: nowrap;
+}
+
+.post-content td code {
+  word-break: break-word;
 }
 
 .post-content th {

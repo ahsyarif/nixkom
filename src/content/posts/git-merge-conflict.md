@@ -38,7 +38,7 @@ const maxRetries = 5;
 3. **Tandai sudah selesai dengan `git add`.** Di Git, cara memberi tahu bahwa konflik pada satu berkas sudah beres adalah dengan memasukkannya ke *staging area*:
 
 ```bash
-git add internal/client/retry.js
+git add src/api/retry.ts
 ```
 
 4. **Selesaikan proses penggabungan.** Kalau semua berkas yang bentrok sudah di-*add*, tutup dengan:

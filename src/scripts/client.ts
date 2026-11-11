@@ -20,7 +20,7 @@ menuToggle.onclick = () => setDrawer(!sidebar.classList.contains('open'));
 backdrop.onclick = () => setDrawer(false);
 
 // Code header bar with language label & copy button
-const langMap: Record<string, string> = { go: 'Go', nix: 'Nix', bash: 'Shell', sh: 'Shell', zsh: 'Shell', js: 'JavaScript', ts: 'TypeScript', py: 'Python', python: 'Python', yaml: 'YAML', toml: 'TOML', json: 'JSON', rust: 'Rust', c: 'C' };
+const langMap: Record<string, string> = { tsx: 'TSX', jsx: 'JSX', css: 'CSS', html: 'HTML', go: 'Go', nix: 'Nix', bash: 'Shell', sh: 'Shell', zsh: 'Shell', js: 'JavaScript', ts: 'TypeScript', py: 'Python', python: 'Python', yaml: 'YAML', toml: 'TOML', json: 'JSON', rust: 'Rust', c: 'C' };
 document.querySelectorAll<HTMLPreElement>('.post-content pre.astro-code').forEach((pre) => {
   const wrap = document.createElement('div');
   wrap.className = 'highlight';

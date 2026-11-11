@@ -6,7 +6,7 @@ tags: ["git", "tips", "workflow"]
 description: "Memecah editan yang tercampur di satu berkas jadi beberapa commit kecil yang rapi pakai mode patch."
 ---
 
-Lagi benerin satu *bug*, tangan sering gatel ikut merapikan fungsi di sebelahnya atau nyelipin `fmt.Println` buat *debug* di berkas yang sama. Waktu mau *commit*, kalau langsung `git add .` semuanya malah kecampur jadi satu. Pakai `git add -p` (mode *patch*), kamu bisa pilih potongan perubahan (*hunk*) mana saja yang mau dimasukkan sekarang dan mana yang ditinggal buat *commit* berikutnya.
+Lagi benerin satu *bug*, tangan sering gatel ikut merapikan komponen di sebelahnya atau nyelipin `console.log` buat *debug* di berkas yang sama. Waktu mau *commit*, kalau langsung `git add .` semuanya malah kecampur jadi satu. Pakai `git add -p` (mode *patch*), kamu bisa pilih potongan perubahan (*hunk*) mana saja yang mau dimasukkan sekarang dan mana yang ditinggal buat *commit* berikutnya.
 
 ## Cara pakainya
 
@@ -14,22 +14,24 @@ Jalankan buat seluruh repo, atau sebut nama berkasnya langsung:
 
 ```bash
 git add -p
-git add -p internal/server/http.go
+git add -p src/components/CheckoutForm.tsx
 ```
 
 Git bakal menyodorkan perubahan per potongan lalu nunggu kamu memilih:
 
 ```text
-diff --git a/internal/server/http.go b/internal/server/http.go
+diff --git a/src/components/CheckoutForm.tsx b/src/components/CheckoutForm.tsx
 index 4b92e11..90c42a8 100644
---- a/internal/server/http.go
-+++ b/internal/server/http.go
-@@ -42,6 +42,7 @@ func NewServer(addr string) *http.Server {
- 	return &http.Server{
- 		Addr:         addr,
-+		ReadTimeout:  5 * time.Second,
- 		WriteTimeout: 10 * time.Second,
- 	}
+--- a/src/components/CheckoutForm.tsx
++++ b/src/components/CheckoutForm.tsx
+@@ -42,6 +42,7 @@ export function CheckoutForm({ onSubmit }: Props) {
+ 	return (
+ 		<button
+ 			type="submit"
++			disabled={isSubmitting}
+ 			className="btn-primary"
+ 		>
+ 	);
  }
 (1/3) Stage this hunk [y,n,q,a,d,s,e,?]?
 ```

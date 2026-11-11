@@ -23,7 +23,7 @@ Pesan lama langsung diganti dengan kalimat baru tanpa menambah jumlah *commit* d
 Misalnya kamu habis melakukan *commit*, lalu sadar ada satu berkas tes yang tadi lupa di-*stage* atau masih kurang satu titik koma. Masukkan berkas yang tertinggal itu lewat `git add`, lalu tempelkan ke *commit* terakhir dengan menambahkan `--no-edit`:
 
 ```bash
-git add internal/shipping/calc_test.go
+git add src/utils/shipping.test.ts
 git commit --amend --no-edit
 ```
 

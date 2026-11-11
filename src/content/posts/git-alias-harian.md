@@ -44,12 +44,12 @@ Tempel ke bagian `[alias]` di `~/.gitconfig`:
 Kalau dijalankan, `git lg` ngasih tampilan kayak gini:
 
 ```text
-* a4f81c2 (HEAD -> main, origin/main) Merge branch 'feat/timeout'
+* a4f81c2 (HEAD -> main, origin/main) Merge branch 'feat/dark-mode'
 |\
-| * 79b3e10 tune dial timeout default
-| * 31d09fa add retry backoff helper
+| * 79b3e10 persist theme preference in localStorage
+| * 31d09fa add dark color tokens to theme.css
 |/
-* c8204ab initial tcp listener setup
+* c8204ab initial navbar component layout
 ```
 
 ## Tiga hal yang perlu kamu tahu

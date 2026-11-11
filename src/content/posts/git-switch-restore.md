@@ -15,8 +15,8 @@ Buat yang baru belajar Git, `git checkout` itu perintah paling membingungkan kar
 | Pindah ke *branch* lain | `git checkout main` | `git switch main` |
 | Bikin *branch* baru lalu pindah ke situ | `git checkout -b feat/login` | `git switch -c feat/login` |
 | Balik ke *branch* sebelumnya | `git checkout -` | `git switch -` |
-| Buang editan lokal di satu berkas | `git checkout -- main.go` | `git restore main.go` |
-| Ambil isi berkas dari *branch* atau *commit* lain | `git checkout main -- main.go` | `git restore -s main main.go` |
+| Buang editan lokal di satu berkas | `git checkout -- App.tsx` | `git restore App.tsx` |
+| Ambil isi berkas dari *branch* atau *commit* lain | `git checkout main -- App.tsx` | `git restore -s main App.tsx` |
 
 ## Kenapa `git checkout` rawan bikin celaka?
 
@@ -48,17 +48,17 @@ git switch -c hotfix/kupon origin/main
 Kalau mau membatalkan editan di satu berkas supaya kembali seperti *commit* terakhir (`HEAD`):
 
 ```bash
-git restore handler.go
+git restore src/components/Navbar.tsx
 ```
 
-Kalau mau mengambil versi berkas `handler.go` dari *branch* lain atau dari tiga *commit* sebelumnya, gunakan opsi `-s` (`--source`):
+Kalau mau mengambil versi berkas `Navbar.tsx` dari *branch* lain atau dari tiga *commit* sebelumnya, gunakan opsi `-s` (`--source`):
 
 ```bash
-git restore -s main handler.go
-git restore -s HEAD~3 handler.go
+git restore -s main src/components/Navbar.tsx
+git restore -s HEAD~3 src/components/Navbar.tsx
 ```
 
-Berkas `handler.go` di folder kerjamu langsung berubah mengikuti versi sumber yang kamu tunjuk, siap untuk kamu periksa lewat `git diff` sebelum di-*commit*.
+Berkas `Navbar.tsx` di folder kerjamu langsung berubah mengikuti versi sumber yang kamu tunjuk, siap untuk kamu periksa lewat `git diff` sebelum di-*commit*.
 
 ## Seri tips Git
 

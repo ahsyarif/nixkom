@@ -22,10 +22,10 @@ Waktu salah ngedit berkas atau telanjur bikin *commit* yang keliru, jangan buru-
 Kalau kamu habis ngacak-ngacak satu berkas buat eksperimen dan mau mengembalikannya ke kondisi bersih sesuai *commit* terakhir, pakai `git restore`:
 
 ```bash
-git restore internal/auth/login.go
+git restore src/components/LoginForm.tsx
 ```
 
-Hati-hati: begitu perintah ini jalan, semua editan yang belum di-*stage* di berkas tersebut langsung hilang. Kalau cuma mau membuang beberapa baris dan mempertahankan sisanya, tambahkan opsi `-p` (`git restore -p internal/auth/login.go`) supaya kamu bisa memilih per potongan.
+Hati-hati: begitu perintah ini jalan, semua editan yang belum di-*stage* di berkas tersebut langsung hilang. Kalau cuma mau membuang beberapa baris dan mempertahankan sisanya, tambahkan opsi `-p` (`git restore -p src/components/LoginForm.tsx`) supaya kamu bisa memilih per potongan.
 
 ## 2. Mengeluarkan berkas yang telanjur di-add
 

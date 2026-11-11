@@ -85,16 +85,16 @@ Tempel blok ini ke `~/.gitconfig`:
 Tampilan konflik bawaan Git cuma ngasih lihat versi `HEAD` dan versi cabang lawan. Masalahnya, kita sering lupa kode aslinya kayak apa sebelum dua-duanya mengubah baris itu. Dengan `zdiff3`, Git menyelipkan blok `|||||||` berisi kode awal (*common ancestor*) dan mengeluarkan baris yang kembar di kedua sisi dari penanda konflik:
 
 ```text
-<<<<<<< HEAD
-timeout := 5 * time.Second
-||||||| merged common ancestors
-timeout := 3 * time.Second
-=======
-timeout := 10 * time.Second
->>>>>>> feature/retry
+  <<<<<<< HEAD
+  const debounceMs = 250;
+  ||||||| merged common ancestors
+  const debounceMs = 150;
+  =======
+  const debounceMs = 400;
+  >>>>>>> feature/search-bar
 ```
 
-Begitu lihat aslinya `3 * time.Second`, langsung kelihatan kalau satu sisi menaikkan jadi 5 detik dan sisi lain menaikkan jadi 10 detik.
+Begitu lihat aslinya `150`, langsung kelihatan kalau satu sisi menaikkan jeda *debounce* jadi 250 ms dan sisi lain menaikkan jadi 400 ms.
 
 ### `push.autoSetupRemote`
 
