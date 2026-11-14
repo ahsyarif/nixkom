@@ -3,6 +3,7 @@ title: Pasang Tailscale di Server Linux Pakai Tag & Auth Key (Bukan Akun Pribadi
 date: 2026-11-14T10:01:00+07:00
 categories:
   - Linux
+  - Server
   - Security
   - Networking
 tags:

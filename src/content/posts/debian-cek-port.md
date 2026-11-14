@@ -1,7 +1,7 @@
 ---
 title: "Cek port yang terbuka di server Debian 13 dengan ss dan nmap"
 date: 2026-11-11T21:03:00+07:00
-categories: ["Linux", "Security"]
+categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "ss", "nmap", "port"]
 description: "Baca keluaran ss -lntup, cari proses di balik tiap port, bind layanan ke localhost, lalu pindai dari luar dengan nmap secara bertanggung jawab."
 ---

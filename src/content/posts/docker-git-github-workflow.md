@@ -3,7 +3,7 @@ title: Alur Git & GitHub dari Laptop ke Repository (Branch, PR, Secrets, & GHCR)
 date: 2026-11-14T11:04:00+07:00
 categories:
   - Git
-  - Infrastructure
+  - DevOps
 tags:
   - git
   - github

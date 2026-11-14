@@ -3,7 +3,8 @@ title: "Cek Kesehatan Server: Pantau CPU, RAM, & Disk Penuh dengan Cepat"
 date: 2026-11-14T12:22:00+07:00
 categories:
   - Linux
-  - Infrastructure
+  - DevOps
+  - Server
 tags:
   - linux
   - monitoring

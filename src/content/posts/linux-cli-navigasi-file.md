@@ -3,7 +3,8 @@ title: Trik Navigasi Terminal & Manajemen File Cepat di Server Linux
 date: 2026-11-14T12:20:00+07:00
 categories:
   - Linux
-  - Infrastructure
+  - DevOps
+  - Server
 tags:
   - linux
   - bash

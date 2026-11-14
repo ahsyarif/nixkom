@@ -1,7 +1,7 @@
 ---
 title: "Backup server Debian 13 dengan restic dan uji pemulihan"
 date: 2026-11-11T21:07:00+07:00
-categories: ["Linux", "Security"]
+categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "backup", "restic", "postgresql"]
 description: "Cadangkan konfigurasi, unggahan, dan PostgreSQL Debian 13 ke server terpisah dengan restic, lalu uji pemulihan tanpa menimpa produksi."
 ---

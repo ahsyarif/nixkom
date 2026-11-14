@@ -2,7 +2,7 @@
 title: Cara Install Docker di Windows (WSL 2) & macOS + Setup Lokal
 date: 2026-11-14T11:02:00+07:00
 categories:
-  - Infrastructure
+  - DevOps
 tags:
   - docker
   - windows

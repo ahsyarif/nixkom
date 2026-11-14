@@ -2,8 +2,9 @@
 title: Cara Install Docker di Linux (Ubuntu, Debian, Fedora, RHEL/Rocky)
 date: 2026-11-14T11:01:00+07:00
 categories:
-  - Infrastructure
+  - DevOps
   - Linux
+  - Server
 tags:
   - docker
   - linux

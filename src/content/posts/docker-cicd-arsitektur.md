@@ -2,9 +2,10 @@
 title: Mengenal Docker & Gambaran Alur Development dari Laptop ke VPS
 date: 2026-11-14T11:00:00+07:00
 categories:
-  - Infrastructure
+  - DevOps
   - Linux
   - Git
+  - Server
 tags:
   - docker
   - git

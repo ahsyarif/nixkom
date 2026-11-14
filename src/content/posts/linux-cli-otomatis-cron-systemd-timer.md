@@ -3,7 +3,8 @@ title: "Menjalankan Tugas Otomatis (cron vs systemd timer) & Kebiasaan Aman"
 date: 2026-11-14T12:26:00+07:00
 categories:
   - Linux
-  - Infrastructure
+  - DevOps
+  - Server
 tags:
   - linux
   - cron

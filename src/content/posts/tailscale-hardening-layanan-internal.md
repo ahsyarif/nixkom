@@ -3,6 +3,7 @@ title: Amankan Database & Dashboard Internal dengan Loopback + Tailscale Serve
 date: 2026-11-14T10:05:00+07:00
 categories:
   - Linux
+  - Server
   - Security
   - Networking
 tags:

@@ -1,7 +1,7 @@
 ---
 title: "Update keamanan otomatis di Debian 13 dengan unattended-upgrades"
 date: 2026-11-11T21:04:00+07:00
-categories: ["Linux", "Security"]
+categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "unattended-upgrades", "apt"]
 description: "Aktifkan unattended-upgrades di Debian 13, baca Origins-Pattern versi Debian, uji dry-run, cek timer dan log, serta tentukan reboot tanpa Automatic-Reboot."
 ---

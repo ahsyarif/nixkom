@@ -3,7 +3,8 @@ title: Mengelola Proses Bandel, Port Terbuka, & Troubleshooting Jaringan
 date: 2026-11-14T12:24:00+07:00
 categories:
   - Linux
-  - Infrastructure
+  - DevOps
+  - Server
 tags:
   - linux
   - tmux

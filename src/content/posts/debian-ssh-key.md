@@ -1,7 +1,7 @@
 ---
 title: "Login SSH pakai kunci Ed25519 di Debian 13, lalu matikan sandi"
 date: 2026-11-11T21:01:00+07:00
-categories: ["Linux", "Security"]
+categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "ssh", "ssh-key", "ed25519"]
 description: "Buat kunci SSH Ed25519, pasang di server Debian 13, uji di terminal kedua, lalu matikan login sandi dan root dengan cek konfigurasi efektif."
 ---

@@ -1,7 +1,7 @@
 ---
 title: "Firewall UFW di Debian 13: aktifkan tanpa mengunci diri sendiri"
 date: 2026-11-11T21:02:00+07:00
-categories: ["Linux", "Security"]
+categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "ufw", "firewall"]
 description: "Pasang UFW di Debian 13: cek port SSH asli, izinkan sebelum enable, uji sesi baru, dan tahu batas firewall saat memakai Docker."
 ---

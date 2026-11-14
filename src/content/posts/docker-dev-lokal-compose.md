@@ -2,8 +2,9 @@
 title: Siapkan Proyek Lokal dengan Dockerfile, .dockerignore, & Docker Compose
 date: 2026-11-14T11:03:00+07:00
 categories:
-  - Infrastructure
+  - DevOps
   - Linux
+  - Server
 tags:
   - docker
   - compose

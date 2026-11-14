@@ -3,7 +3,8 @@ title: Membaca Config, Pipe, Redirection, & Trik Edit File di Server
 date: 2026-11-14T12:21:00+07:00
 categories:
   - Linux
-  - Infrastructure
+  - DevOps
+  - Server
 tags:
   - linux
   - cli

@@ -3,7 +3,9 @@ title: "Manajemen Paket, User, sudo, & Permission Tanpa Panik"
 date: 2026-11-14T12:25:00+07:00
 categories:
   - Linux
-  - Infrastructure
+  - DevOps
+  - Server
+  - Security
 tags:
   - linux
   - apt

@@ -1,7 +1,7 @@
 ---
 title: "Permission file di Debian 13: perbaiki upload tanpa chmod 777"
 date: 2026-11-11T21:05:00+07:00
-categories: ["Linux", "Security"]
+categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "permission", "chmod"]
 description: "Perbaiki izin folder unggahan di Debian 13 tanpa chmod 777: telusuri pemilik, batasi akses proses aplikasi, lalu uji baca dan tulis."
 ---

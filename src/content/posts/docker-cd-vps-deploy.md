@@ -2,9 +2,11 @@
 title: Continuous Deployment (CD) ke VPS dengan Aman + Rollback
 date: 2026-11-14T11:06:00+07:00
 categories:
-  - Infrastructure
+  - DevOps
   - Linux
   - Git
+  - Server
+  - Security
 tags:
   - docker
   - github-actions

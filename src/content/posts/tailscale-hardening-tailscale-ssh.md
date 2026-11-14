@@ -3,6 +3,7 @@ title: Masuk Server Tanpa Ribet Kunci Manual dengan Tailscale SSH & Check Mode
 date: 2026-11-14T10:03:00+07:00
 categories:
   - Linux
+  - Server
   - Security
   - Networking
 tags:

@@ -2,7 +2,7 @@
 title: "Bangun Pipeline CI dengan GitHub Actions: Tes & Build Image ke GHCR"
 date: 2026-11-14T11:05:00+07:00
 categories:
-  - Infrastructure
+  - DevOps
   - Git
 tags:
   - docker

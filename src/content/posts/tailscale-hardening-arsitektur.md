@@ -3,6 +3,7 @@ title: Cara Kerja & Arsitektur Mengamankan Server Linux dengan Tailscale
 date: 2026-11-14T10:00:00+07:00
 categories:
   - Linux
+  - Server
   - Security
   - Networking
 tags:

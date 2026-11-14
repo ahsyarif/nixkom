@@ -3,6 +3,7 @@ title: Pemantauan, Audit Log, Pencabutan Akses, & Akses Darurat (Break-Glass)
 date: 2026-11-14T10:06:00+07:00
 categories:
   - Linux
+  - Server
   - Security
   - Networking
 tags:

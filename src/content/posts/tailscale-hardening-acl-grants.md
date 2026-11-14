@@ -3,6 +3,7 @@ title: Isolasi Antar-Server Pakai Tag, Grants, dan Tailnet Lock
 date: 2026-11-14T10:04:00+07:00
 categories:
   - Linux
+  - Server
   - Security
   - Networking
 tags:

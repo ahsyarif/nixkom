@@ -3,6 +3,7 @@ title: Kunci Firewall Server Linux (UFW & tailscale0) Lalu Tutup Port Publik
 date: 2026-11-14T10:02:00+07:00
 categories:
   - Linux
+  - Server
   - Security
   - Networking
 tags:

@@ -1,7 +1,7 @@
 ---
 title: "Catatan Pemula: Container NixOS Deklaratif dan Jaringan WireGuard"
 date: 2026-11-07T09:00:00+07:00
-categories: ["Infrastructure", "NixOS"]
+categories: ["DevOps", "NixOS", "Server", "Security"]
 tags: ["nix", "wireguard", "linux", "containers"]
 pin: true
 description: "Panduan ringan mengenal cara membuat container ringan di NixOS dan menghubungkannya lewat jaringan privat WireGuard."
