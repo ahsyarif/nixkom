@@ -6,11 +6,15 @@ tags: ["git", "tips", "pemula"]
 description: "Memahami arti penanda <<<<<<< HEAD, =======, dan >>>>>>> waktu gabung branch, plus tombol darurat buat membatalkan merge."
 ---
 
-*Merge conflict* itu bukan pesan galat yang berarti Git kamu rusak. Konflik muncul semata-mata karena kamu dan rekan setimmu mengubah baris yang sama pada berkas yang sama di dua *branch* berbeda, sehingga Git tidak berani menebak versi siapa yang harus dipakai. Tugasmu cuma membuka berkas itu, memilih bentuk kode yang benar, lalu menghapus garis pembatasnya.
+Melihat tulisan `CONFLICT (content): Merge conflict` di terminal sering bikin pemula langsung panik dan takut proyeknya rusak.
 
-## Cara membaca penanda konflik
+Padahal, ***merge conflict* bukan berarti Git-mu error atau rusak!** Konflik terjadi karena situasi yang sangat wajar: kamu dan rekan setimmu sama-sama mengubah **baris yang sama di berkas yang sama** pada dua *branch* berbeda. Karena keduanya sama-sama berubah, Git tidak berani menebak versi siapa yang lebih benar. Jadi Git berhenti sejenak dan memintamu memilih secara manual.
 
-Waktu Git berhenti karena konflik, buka berkas yang ditandai `both modified` pada `git status`. Di dalamnya kamu bakal menemukan blok pembatas seperti ini (pastikan tulisannya rata kiri tanpa spasi di depannya pada berkas aslimu):
+Tugasmu sederhana: buka berkas tersebut, pilih (atau gabungkan) bentuk kode yang benar, lalu hapus garis-garis pembatas dari Git.
+
+## 1. Cara membaca tanda pembatas konflik
+
+Saat proses penggabungan berhenti karena konflik, cek daftar berkas yang bermasalah lewat `git status` (di sebelah kirinya akan bertuliskan `both modified`). Buka berkas itu di code editor, kamu akan melihat blok tanda seperti ini:
 
 ```text
   <<<<<<< HEAD
@@ -20,54 +24,60 @@ Waktu Git berhenti karena konflik, buka berkas yang ditandai `both modified` pad
   >>>>>>> feat/atur-retry
 ```
 
-Artinya cuma dua bagian:
-- **Bagian atas** (di antara `<<<<<<< HEAD` sampai `=======`): ini kode milikmu yang sedang aktif di *branch* tempat kamu berdiri sekarang (`HEAD`).
-- **Bagian bawah** (di antara `=======` sampai `>>>>>>> feat/atur-retry`): ini kode baru yang datang dari *branch* `feat/atur-retry` yang sedang coba kamu gabungkan.
+*(Catatan: pada berkas asli, tanda `<<<<<<<`, `=======`, dan `>>>>>>>` muncul rata paling kiri tanpa spasi di depannya).*
 
-Tips: kalau kamu sudah mengaktifkan `merge.conflictStyle = zdiff3` seperti di [artikel konfigurasi Git wajib](/posts/git-config-wajib/), di tengah-tengahnya akan ada satu blok tambahan `||||||| merged common ancestors` yang memperlihatkan isi kode asli sebelum kamu maupun temanmu mengubahnya.
+Cara membacanya cuma terbagi dua:
+- **Bagian atas** (antara `<<<<<<< HEAD` sampai `=======`): ini kodemu sendiri yang sedang aktif di *branch* tempatmu berdiri sekarang (`HEAD`).
+- **Bagian bawah** (antara `=======` sampai `>>>>>>> feat/atur-retry`): ini kode baru yang datang dari *branch* `feat/atur-retry` yang sedang kamu coba gabungkan.
 
-## Empat langkah membereskannya
+**Tip:** Jika kamu sudah menyalakan `merge.conflictStyle = zdiff3` sesuai [artikel konfigurasi Git wajib](/posts/git-config-wajib/), Git juga menampilkan satu bagian tengah bertanda `||||||| merged common ancestors` yang berisi **kode asli mula-mula** sebelum kamu maupun temanmu mengubahnya—jauh lebih mudah untuk memahami konteksnya!
 
-1. **Cek berkas mana saja yang bentrok.** Jalankan `git status -sb`. Berkas yang mengalami konflik ditandai huruf `UU` di sebelah kirinya.
-2. **Edit berkasnya dan bersihkan penandanya.** Putuskan mau memakai versi atas, versi bawah, atau gabungan keduanya. Setelah memilih, **hapus bersih** baris `<<<<<<<`, `=======`, dan `>>>>>>>` supaya kodenya bisa dikompilasi lagi:
+## 2. Empat langkah menyelesaikan konflik
+
+1. **Lihat berkas mana saja yang bentrok:**
+   Jalankan `git status -sb`. Berkas yang masih mengalami konflik ditandai huruf **`UU`** (artinya *unmerged*) di sebelah kiri namanya.
+2. **Edit berkas dan hapus bersih semua tanda pembatas:**
+   Putuskan apakah kamu mau memakai versi atas, versi bawah, atau menggabungkan keduanya. **Pastikan kamu menghapus bersih** ketiga baris penanda `<<<<<<<`, `=======`, dan `>>>>>>>`—kalau sampai tertinggal satu baris saja, kodemu tidak akan bisa dijalankan atau dikompilasi:
 
 ```javascript
 const maxRetries = 5;
 ```
 
-3. **Tandai sudah selesai dengan `git add`.** Di Git, cara memberi tahu bahwa konflik pada satu berkas sudah beres adalah dengan memasukkannya ke *staging area*:
+3. **Tandai berkas sudah beres memakai `git add`:**
+   Di Git, cara memberi tahu bahwa konflik pada sebuah berkas sudah selesai kamu bereskan adalah memasukkannya ke *staging area*:
 
 ```bash
 git add src/api/retry.ts
 ```
 
-4. **Selesaikan proses penggabungan.** Kalau semua berkas yang bentrok sudah di-*add*, tutup dengan:
+4. **Selesaikan proses penggabungan:**
+   Setelah semua berkas bertanda `UU` selesai di-`git add`, tutup penggabungan dengan membuat *commit*:
 
 ```bash
 git commit
 ```
 
-(Kalau konfliknya terjadi di tengah proses `git rebase`, ganti langkah keempat dengan `git rebase --continue`).
+*(Catatan: jika konfliknya terjadi saat menjalankan `git rebase`, langkah ke-4 bukan `git commit`, melainkan `git rebase --continue`).*
 
-## Intip alasan teman mengubah baris itu
+## 3. Mengintip alasan temanmu mengubah baris itu
 
-Jangan asal menghapus kode bagian bawah kalau belum tahu kenapa rekan kerjamu mengubahnya. Sebelum mengedit berkas yang bentrok, jalankan perintah ini buat melihat *commit* dari kedua sisi yang menyentuh bagian tersebut:
+Sebelum buru-buru menghapus versi temanmu (bagian bawah), sebaiknya cari tahu dulu kenapa dia mengubah baris tersebut. Kamu tidak perlu bolak-balik membuka GitHub—jalankan saja perintah ini di terminal untuk melihat *commit* dari kedua sisi yang menyentuh berkas tersebut:
 
 ```bash
 git log --merge -p nama-berkas.js
 ```
 
-Dari pesan *commit* dan potongan *diff*-nya, kamu bisa langsung paham konteks perubahan temanmu tanpa harus bolak-balik membuka halaman GitHub.
+Dari pesan *commit* dan potongan perubahan (*diff*) yang tampil, kamu langsung tahu maksud perubahan rekanmu sehingga tidak salah menghapus kode penting.
 
-## Tombol darurat: mulai ulang dari awal
+## 4. Tombol darurat: batalkan dan mulai ulang dari awal
 
-Kalau di tengah jalan kamu salah hapus banyak baris dan isi berkasnya malah makin kacau, jangan panik. Batalkan saja seluruh proses *merge* supaya kedua *branch* kembali utuh seperti sebelum kamu mengetik `git merge`:
+Jika di tengah proses membereskan konflik kamu merasa salah hapus banyak baris dan isi berkasnya malah makin kacau, jangan panik! Kamu bisa langsung membatalkan seluruh proses *merge* sehingga semua berkas kembali bersih seperti sebelum kamu mengetik `git merge`:
 
 ```bash
 git merge --abort
 ```
 
-Kalau sedang berada di tengah *rebase* atau *cherry-pick*, perintah daruratnya serupa: `git rebase --abort` atau `git cherry-pick --abort`.
+Kalau konflik terjadi saat `rebase` atau `cherry-pick`, tombol daruratnya juga mirip: `git rebase --abort` atau `git cherry-pick --abort`.
 
 ## Seri tips Git
 

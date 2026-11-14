@@ -6,30 +6,34 @@ tags: ["debian", "linux", "keamanan", "pemula", "vps", "sudo", "ssh"]
 description: "Urutan aman menyiapkan VPS Debian 13 baru: update, akun admin bersudo, lalu kunci SSH, firewall, patch otomatis, dan backup tanpa terkunci."
 ---
 
-Mengamankan VPS Debian 13 (*trixie*) dimulai dengan memperbarui paket dan membuat akun admin, lalu membatasi SSH serta koneksi masuk. Urutannya harus menjaga satu hal: **jangan menutup akses lama sebelum akses penggantinya terbukti bisa dipakai.**
+Baru menyewa VPS Debian 13 (*trixie*) dan bingung harus mulai dari mana supaya aman? Tenang, langkah awalnya tidak seseram kelihatannya. Intinya cuma dua: **perbarui sistem dan buat akun admin biasa** terlebih dahulu, baru setelah itu kita batasi akses SSH dan pasang firewall.
 
-Dalam semua contoh, `203.0.113.10` adalah IP dokumentasi. **Ganti dengan IP server aslimu.** Kita pakai port SSH 22 dan akun admin bernama `admin`; ganti kalau punyamu beda. Penanda `# di server` dan `# di laptop` menunjukkan tempat perintah dijalankan.
+Satu aturan emas yang wajib dipegang dari awal sampai akhir: **jangan menutup pintu masuk lama sebelum pintu masuk baru terbukti bisa dibuka.** Anggap saja seperti mengganti gembok rumah—pastikan kunci baru sudah dicoba dan berhasil memutar gembok sebelum gembok lama dibuang.
 
-## Sebelum mulai: cari jalan darurat
+Dalam semua contoh di artikel ini, `203.0.113.10` adalah IP contoh (IP dokumentasi). **Selalu ganti dengan IP server aslimu.** Kita juga mengasumsikan port SSH ada di angka 22 dan nama akun admin barunya adalah `admin` (sesuaikan kalau punyamu berbeda). Perhatikan juga komentar `# di server` atau `# di laptop` di setiap kotak kode agar kamu tidak salah tempat saat menjalankan perintah.
 
-Cari dulu **konsol recovery/VNC/serial** di panel provider. Konsol ini tidak lewat SSH, jadi tetap bisa dipakai kalau kamu salah konfigurasi SSH atau firewall. Coba login lewat konsol sekali (lihat kredensial `root` dari provider) supaya kamu tahu itu berfungsi *sebelum* kamu butuh.
+## Sebelum mulai: siapkan jalan darurat
 
-Buka juga panel firewall provider kalau ada (sering disebut *cloud firewall* atau *security group*). Firewall di panel itu terpisah dari firewall di dalam server, dan sama-sama bisa memblokir koneksimu.
+Sebelum menyentuh konfigurasi apa pun, cari dulu menu **konsol recovery / VNC / serial console** di panel penyedia VPS (provider) kamu.
 
-## Langkah 1: masuk pertama dan update
+Kenapa ini penting? Konsol ini tidak lewat jaringan SSH, melainkan ibarat "monitor dan keyboard yang dicolokkan langsung ke server" di gedung data center. Jadi, kalau nanti kamu tidak sengaja salah mengatur firewall atau SSH hingga terkunci, konsol inilah pintu daruratmu. Coba login lewat konsol ini sekali saja menggunakan kredensial `root` dari provider supaya kamu yakin jalan darurat ini benar-benar berfungsi *sebelum* kamu membutuhkannya.
 
-Dari laptop, masuk pertama kali dengan akun yang diberikan provider:
+Sekalian di panel provider, cek apakah ada fitur **cloud firewall** atau **security group**. Bayangkan ini sebagai satpam di gerbang kompleks perumahan, sedangkan firewall di dalam server nanti adalah satpam di depan pintu rumahmu. Keduanya terpisah dan sama-sama bisa memblokir koneksi kalau ada yang tidak diizinkan.
+
+## Langkah 1: masuk pertama kali dan perbarui sistem
+
+Dari laptopmu, buka terminal lalu masuk ke server menggunakan akun awal yang diberikan provider:
 
 ```bash
 # di laptop
 ssh root@203.0.113.10
 ```
 
-Contoh ini memakai akses awal `root`. Kalau provider memberikan akun lain dengan `sudo`, pakai akun itu dan awali perintah administrasi dengan `sudo`. Image yang hanya menerima kunci memerlukan opsi `-i /lokasi/kunci` saat SSH; jangan mengaktifkan login sandi hanya untuk mengikuti contoh.
+Di sini kita memakai akun `root`, yaitu akun "penguasa penuh" di Linux yang bisa mengubah segala hal di sistem. Kalau provider kamu tidak memberi akses `root` secara langsung melainkan akun biasa yang sudah punya hak `sudo`, masuklah dengan akun itu dan awali perintah-perintah administrasi nanti dengan kata `sudo`. Kalau image VPS-mu sejak awal hanya menerima SSH key (kunci), gunakan opsi `-i /lokasi/kunci` (`-i` adalah singkatan dari *identity file*, untuk menunjuk lokasi file kunci privatmu); jangan mengaktifkan login kata sandi hanya demi mengikuti contoh.
 
-Kalau muncul pertanyaan fingerprint, jangan asal ketik `yes`. Bandingkan dulu dengan fingerprint dari konsol provider; caranya ada di [artikel SSH key](/posts/debian-ssh-key/).
+Saat pertama kali terhubung, SSH akan memunculkan pertanyaan tentang **fingerprint** (semacam sidik jari unik milik server untuk memastikan kamu tidak nyasar ke server palsu). Jangan langsung mengetik `yes`. Cocokkan dulu sidik jari tersebut dengan yang ada di konsol provider; langkah lengkapnya ada di [artikel SSH key](/posts/debian-ssh-key/).
 
-Lalu perbarui daftar paket dan lihat dulu apa yang akan berubah:
+Setelah berhasil masuk ke server, kita perlu memperbarui sistem. Kenapa? Server baru biasanya masih membawa paket bawaan yang mungkin sudah punya tambalan celah keamanan (*security patch*) terbaru. Jalankan dua perintah ini dulu:
 
 ```bash
 # di server
@@ -37,18 +41,24 @@ apt update
 apt list --upgradable
 ```
 
-`apt list --upgradable` menampilkan paket yang punya versi baru. Kalau daftarnya wajar, jalankan:
+- `apt` adalah manajer paket di Debian (ibarat toko aplikasi sekaligus pembaru sistem).
+- `apt update` bertugas menyegarkan daftar katalog paket terbaru dari internet (belum menginstal apa-apa).
+- `apt list --upgradable` menampilkan daftar aplikasi atau komponen sistem yang punya versi lebih baru.
+
+Kalau daftar pembaruannya terlihat wajar, baru jalankan pembaruan sebenarnya:
 
 ```bash
 # di server
 apt upgrade
 ```
 
-APT akan menampilkan ringkasan paket yang dipasang, diganti, atau dihapus dan menunggu konfirmasi. **Baca ringkasan itu**, terutama baris "akan dihapus" (*to be REMOVED*). Kalau ada dialog tentang berkas konfigurasi yang diubah, pilih mempertahankan versi lokal kalau kamu tidak yakin, lalu periksa belakangan. Kalau kernel ikut diperbarui, `reboot` nanti bisa dilakukan setelah akun admin siap dan kamu masih punya konsol.
+APT akan menampilkan ringkasan paket apa saja yang akan dipasang, diganti, atau dihapus, lalu meminta konfirmasi. **Biasakan membaca ringkasan ini**, terutama kalau ada baris bertuliskan "akan dihapus" (*to be REMOVED*), supaya tidak ada layanan penting yang ikut terhapus tanpa sengaja. Kalau muncul dialog tentang berkas konfigurasi yang pernah diubah, pilih pertahankan versi lokal jika kamu ragu, lalu cek nanti. Jika inti sistem (*kernel*) ikut diperbarui, kamu bisa melakukan `reboot` nanti setelah akun `admin` siap dan kamu sudah yakin punya akses konsol darurat.
 
 ## Langkah 2: buat akun admin dengan sudo
 
-Bekerja terus-menerus sebagai `root` berbahaya: satu salah ketik, tidak ada rem. Buat akun biasa yang bisa naik hak lewat `sudo`. Image Debian minimal kadang belum punya `sudo`, jadi pasang dulu:
+Kenapa tidak pakai `root` saja seterusnya? Bekerja sehari-hari sebagai `root` itu seperti mengendarai mobil tanpa rem: satu kali saja kamu salah ketik perintah (misalnya salah menghapus direktori), sistem langsung menurut tanpa bertanya.
+
+Solusinya, kita buat akun pengguna biasa (`admin`) yang sehari-hari punya hak terbatas, tapi bisa meminjam "hak akses super" kapan pun dibutuhkan dengan mengetik `sudo` (*superuser do*). Karena beberapa image Debian minimal belum menyertakan `sudo`, kita pasang dulu paketnya lalu buat akunnya:
 
 ```bash
 # di server (sebagai root)
@@ -57,62 +67,66 @@ adduser admin
 usermod -aG sudo admin
 ```
 
-`adduser admin` menanyakan kata sandi, pilih yang panjang dan unik. Isian nama lengkap dan lainnya boleh dikosongkan dengan Enter. `usermod -aG sudo admin` memasukkan `admin` ke grup `sudo` (`-a` penting: tanpa itu grup lain malah terhapus). Cek hasilnya:
+Mari kita bedah perintah di atas:
+- `adduser admin` akan membuat user baru bernama `admin` dan memintamu membuat kata sandi. Pilih kata sandi yang panjang dan unik. Isian lain seperti nama lengkap atau nomor telepon boleh dikosongkan dengan menekan Enter.
+- `usermod -aG sudo admin` memasukkan `admin` ke dalam grup `sudo`. Di sini, `-G` berarti menetapkan grup, sedangkan `-a` (*append*) berarti **menambahkan** ke grup baru tanpa menghapus grup-grup yang sudah dimiliki sebelumnya. Opsi `-a` ini penting sekali karena tanpanya grup lama bisa terhapus.
+
+Sekarang cek apakah akun `admin` sudah resmi masuk ke grup `sudo`:
 
 ```bash
 # di server
 id admin
 ```
 
-Keluarannya harus memuat `sudo`, misalnya `groups=1001(admin),27(sudo)`. Anggota grup baru terbaca saat login baru, jadi lanjutkan dengan sesi baru.
+Pastikan keluarannya memuat kata `sudo`, misalnya `groups=1001(admin),27(sudo)`. Perubahan grup ini baru akan dibaca sistem saat kita melakukan login baru, jadi langkah berikutnya kita tes dari jendela terminal baru.
 
-## Langkah 3: sambung ulang dan buktikan sudo
+## Langkah 3: sambung ulang dan buktikan sudo berfungsi
 
-Biarkan sesi `root` tetap terbuka. Buka terminal **kedua** di laptop:
+**Jangan tutup sesi `root` yang sekarang terbuka!** Biarkan ia tetap menyala sebagai tali penyelamat. Buka **terminal kedua** di laptopmu, lalu coba login sebagai `admin`:
 
 ```bash
 # di laptop, terminal kedua
 ssh admin@203.0.113.10
 ```
 
-Kalau server hanya menerima kunci, pasang kunci publik untuk `admin` lewat sesi `root` terlebih dahulu. Ikuti bagian pemasangan manual di [panduan kunci SSH](/posts/debian-ssh-key/), lalu ulangi login `admin` dengan kunci tersebut.
+Kalau VPS-mu sejak awal hanya menerima SSH key, pasang dulu kunci publik milik `admin` lewat sesi `root` yang masih terbuka (ikuti bagian pemasangan manual di [panduan kunci SSH](/posts/debian-ssh-key/)), baru ulangi login `admin` memakai kunci tersebut.
 
-Setelah masuk, tes:
+Setelah berhasil masuk sebagai `admin`, uji apakah `sudo` berjalan dengan menanyakan ke sistem siapa kita saat memakai `sudo`:
 
 ```bash
 # di server, sebagai admin
 sudo whoami
 ```
 
-Harus mencetak `root`. Kalau iya, kamu sudah punya jalan masuk non-root yang berfungsi. Kalau gagal (`admin is not in the sudoers file`, misalnya), perbaiki dari sesi `root` yang masih terbuka, jangan tutup dulu.
+Masukkan kata sandi `admin` jika diminta. Perintah ini harus mencetak `root`. Jika benar mencetak `root`, selamat—kamu sekarang sudah punya pintu masuk non-root yang aman dan berfungsi! Kalau gagal (misalnya muncul pesan `admin is not in the sudoers file`), jangan panik dan jangan tutup sesi `root` di terminal pertama; perbaiki langsung dari sesi `root` tersebut.
 
-## Langkah 4: lanjutkan ke pengerasan, satu per satu
+## Langkah 4: lanjutkan pengamanan bertahap, satu per satu
 
-Sekarang baru kamu punya pijakan. Urutan yang disarankan, masing-masing dengan cek dan jalan mundur:
+Sekarang fondasi awal sudah aman. Lanjutkan pengamanan server mengikuti urutan berikut agar setiap langkah bisa diuji satu per satu dan selalu ada jalan mundur jika terjadi kesalahan:
 
-1. **[Kunci SSH](/posts/debian-ssh-key/)**: masuk dengan kunci, uji di terminal kedua, baru nanti nonaktifkan sandi dan login `root`.
-2. **[Firewall UFW](/posts/debian-firewall-ufw/)**: izinkan SSH dulu, baru aktifkan.
-3. **[Cek port yang terbuka](/posts/debian-cek-port/)**: pastikan hanya layanan yang kamu maksud yang mendengarkan.
-4. **[Update keamanan otomatis](/posts/debian-unattended-upgrades/)**: tambalan keamanan masuk tanpa kamu ingat.
-5. **[Permission tanpa 777](/posts/debian-permission-tanpa-777/)**: hak akses berkas seperlunya.
-6. **[Fail2ban untuk SSH](/posts/debian-fail2ban-ssh/)**: memperlambat tebakan sandi berulang.
-7. **[Backup dan uji restore](/posts/debian-backup-restore/)**: pengaman terakhir kalau semua di atas gagal.
+1. **[Kunci SSH](/posts/debian-ssh-key/)**: login memakai kunci kriptografi, uji di terminal kedua, baru nonaktifkan login kata sandi dan login `root`.
+2. **[Firewall UFW](/posts/debian-firewall-ufw/)**: izinkan pintu SSH dulu, baru nyalakan satpam firewall.
+3. **[Cek port yang terbuka](/posts/debian-cek-port/)**: periksa pintu mana saja yang terbuka dan pastikan hanya layanan yang memang kamu butuhkan yang bisa diakses.
+4. **[Update keamanan otomatis](/posts/debian-unattended-upgrades/)**: pasang sistem tambalan keamanan otomatis agar tidak lupa.
+5. **[Permission tanpa 777](/posts/debian-permission-tanpa-777/)**: atur izin akses berkas seperlunya saja.
+6. **[Fail2ban untuk SSH](/posts/debian-fail2ban-ssh/)**: blokir otomatis pihak yang mencoba menebak kata sandi berkali-kali.
+7. **[Backup dan uji restore](/posts/debian-backup-restore/)**: jaring pengaman terakhir kalau semua pertahanan di atas kebobolan atau terjadi kesalahan fatal.
 
-Kunci SSH diuji sebelum firewall agar kamu tidak mengubah dua jalur akses sekaligus. Kalau server sudah menyimpan data, buat dan uji backup sebelum eksperimen besar.
+Kenapa kunci SSH kita uji sebelum menyalakan firewall? Supaya kamu tidak mengubah dua jalur akses sekaligus dalam satu waktu—kalau ada yang macet, kamu langsung tahu penyebabnya. Jika server sudah mulai menyimpan data penting, pastikan kamu sudah membuat dan menguji backup sebelum melakukan eksperimen konfigurasi besar.
 
-## Hal yang sengaja tidak dilakukan
+## Hal yang sengaja tidak kita lakukan
 
-- **Jangan menonaktifkan login `root` atau kata sandi sebelum login kunci + `sudo` terbukti** dari sesi terpisah.
-- **Jangan menempel skrip "hardening satu klik"** dari internet. Kamu tidak tahu apa yang diubah dan tidak tahu cara membatalkannya.
-- **Jangan tutup sesi SSH yang sedang bekerja** saat mengubah SSH atau firewall. Sesi lama itu tali penyelamatmu.
+- **Jangan mematikan login `root` atau login kata sandi sebelum login pakai SSH key + `sudo` terbukti berhasil** dari terminal terpisah.
+- **Jangan asal salin-tempel skrip "hardening satu klik"** dari internet. Kalau kamu tidak tahu apa saja yang diubah skrip itu, kamu juga tidak akan tahu cara memperbaikinya saat ada layanan yang error.
+- **Jangan menutup sesi SSH yang sedang aktif** saat kamu sedang mengutak-atik pengaturan SSH atau firewall. Sesi lama yang masih tersambung itulah penyelamatmu kalau konfigurasi baru ternyata salah.
 
 ## Cek akhir
 
-Sebelum menganggap tahap awal selesai, pastikan:
+Sebelum menutup tahap awal ini dan lanjut ke artikel berikutnya, pastikan tiga hal ini sudah beres:
 
-- login `admin` dan `sudo whoami` jalan di terminal terpisah;
-- kamu tahu cara masuk konsol recovery provider;
-- `apt update && apt list --upgradable` tidak menyisakan tambalan keamanan yang tertunda.
+- Login `admin` dan perintah `sudo whoami` berhasil dijalankan di terminal terpisah.
+- Kamu sudah tahu cara membuka konsol recovery di panel provider.
+- Perintah `apt update && apt list --upgradable` sudah tidak menyisakan pembaruan keamanan yang tertunda.
 
 ## Referensi
 

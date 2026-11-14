@@ -6,19 +6,24 @@ tags: ["tailscale","debian","pemula","ssh","keamanan"]
 description: "Akses OpenSSH Debian lewat IP Tailscale, uji login baru, lalu tutup jalur SSH publik dengan pemeriksaan firewall dan akses pemulihan."
 ---
 
-SSH ke IP Tailscale tetap bisa memakai OpenSSH dan kunci Ed25519 yang sudah kamu gunakan. Yang berubah adalah jalur jaringannya: laptop menghubungi alamat privat server, bukan port SSH pada IP publik.
+Membuka port SSH (port 22) ke internet publik itu ibarat menaruh pintu depan rumah tepat di pinggir jalan raya: siapa saja di internet bisa mencoba mengetuk dan menebak kata sandinya setiap hari. Dengan Tailscale, kita bisa memindahkan akses SSH ke "pintu belakang" yang hanya ada di dalam jaringan privat *tailnet*.
 
-Selesaikan [pemasangan Tailscale](/posts/tailscale-debian-pemula/) di kedua perangkat. Contoh memakai port SSH 22 dan akun Linux `admin`; ganti sesuai servermu. Siapkan kunci melalui [panduan SSH Debian](/posts/debian-ssh-key/) bila belum ada.
+Kabar baiknya, SSH lewat IP Tailscale tetap bisa memakai **OpenSSH** dan kunci **Ed25519** yang sudah biasa kamu gunakan. Yang berubah hanyalah jalur jaringannya: laptop menghubungi alamat IP privat Tailscale milik server, bukan IP publiknya.
+
+Sebelum mulai, pastikan kamu sudah menyelesaikan [pemasangan Tailscale](/posts/tailscale-debian-pemula/) di laptop dan server. Contoh di bawah memakai port SSH `22` dan akun Linux `admin` (silakan ganti sesuai servermu). Jika belum punya kunci SSH, siapkan dulu lewat [panduan SSH Debian](/posts/debian-ssh-key/).
 
 ## Bedakan OpenSSH dan Tailscale SSH
 
-Panduan ini memakai layanan `sshd` biasa. Tailscale hanya membawa koneksinya; autentikasi tetap melalui konfigurasi OpenSSH dan `authorized_keys`.
+Penting untuk tidak tertukar antara dua istilah ini:
 
-Fitur bernama **Tailscale SSH** berbeda: fitur itu mengambil alih koneksi SSH ke IP Tailscale dan memakai aturan SSH dalam kebijakan tailnet. Kita tidak menjalankan `tailscale up --ssh` atau `tailscale set --ssh` di sini. Bila sebelumnya kamu sudah mengaktifkannya, tentukan dulu layanan yang hendak dipakai sebelum mengikuti langkah ini.
+- **OpenSSH lewat Tailscale (yang kita pakai di sini):** Kita tetap memakai layanan `sshd` bawaan Debian. Tailscale hanya berperan membawa paket koneksinya secara aman, sedangkan urusan login dan verifikasi kunci tetap ditangani oleh konfigurasi OpenSSH dan file `authorized_keys`.
+- **Tailscale SSH (fitur bawaan Tailscale):** Ini adalah fitur khusus dari Tailscale yang mengambil alih koneksi SSH ke IP Tailscale dan mengatur izinnya lewat kebijakan *tailnet*. Kita **tidak** menjalankan `tailscale up --ssh` atau `tailscale set --ssh` di panduan ini. Jika sebelumnya kamu pernah mengaktifkan fitur tersebut, tentukan dulu layanan mana yang ingin dipakai sebelum melanjutkan.
 
 ## Uji sesi baru sebelum mengubah firewall
 
-Pertahankan sesi SSH publik yang sekarang terbuka. Di server:
+Aturan emas saat mengutak-atik firewall server jarak jauh: **jangan menutup pintu lama sebelum pintu baru terbukti bisa dibuka!** Pertahankan sesi SSH publik yang sekarang masih terbuka sebagai jaring pengaman.
+
+Di terminal server, periksa apakah layanan SSH aktif, di alamat mana ia "mendengarkan" koneksi, dan berapa IP Tailscale servermu:
 
 ```bash
 systemctl status ssh
@@ -26,24 +31,30 @@ sudo ss -ltnp 'sport = :22'
 tailscale ip -4
 ```
 
-OpenSSH harus mendengarkan di IP Tailscale atau alamat wildcard yang mencakupnya. Jika hanya mendengarkan pada IP publik tertentu, periksa `ListenAddress` di konfigurasi sshd. Validasi perubahan dengan `sudo sshd -t` sebelum memuat ulang layanan; jangan menebak alamat baru dari contoh.
+Pastikan OpenSSH mendengarkan di IP Tailscale server atau di alamat wildcard (`0.0.0.0` / `[::]`) yang mencakup semua antarmuka. Jika di konfigurasi `sshd` sebelumnya kamu membatasinya hanya pada IP publik tertentu, periksa pengaturan `ListenAddress`. Selalu validasi perubahan konfigurasi dengan `sudo sshd -t` sebelum memuat ulang layanan, dan jangan menebak-nebak alamat baru dari contoh.
 
-Di terminal laptop lain, ganti IP ilustrasi berikut:
+Sekarang, buka **terminal baru di laptop** (jangan tutup sesi lama di terminal pertama), lalu coba masuk lewat IP Tailscale server (ganti `100.101.102.103` dengan IP milikmu):
 
 ```bash
 # di laptop
 ssh admin@100.101.102.103
 ```
 
-Cocokkan sidik jari host key saat diminta. Di sesi server yang sudah dipercaya, lihat sidik jari Ed25519 dengan `sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`. Jangan asal menerima peringatan host key berubah.
+Saat pertama kali terhubung lewat IP baru, SSH akan meminta kamu memverifikasi sidik jari (*fingerprint*) host key server. Cocokkan sidik jari tersebut dengan mengeceknya langsung di sesi server lama yang sudah kamu percaya:
 
-Login berhasil harus membuka shell akun yang benar. Jalankan `whoami` dan `sudo -v` untuk memastikan akses administrasi masih tersedia. Jika gagal, periksa kebijakan tailnet untuk TCP 22, alamat dengar sshd, dan firewall host. Ping Tailscale berhasil saja belum cukup.
+```bash
+sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+```
+
+Jangan asal menerima peringatan jika sidik jari host key berubah tanpa alasan yang jelas.
+
+Setelah berhasil login, jalankan `whoami` dan `sudo -v` untuk memastikan kamu masuk sebagai akun yang benar dan hak akses `sudo` masih berfungsi. Jika login gagal, periksa tiga hal: kebijakan *tailnet* untuk TCP port 22, alamat dengar `sshd`, dan firewall di server. Ingat, `tailscale ping` yang berhasil saja belum cukup untuk menjamin SSH bisa masuk.
 
 ## Tutup jalur publik setelah pemulihan siap
 
-Pastikan konsol serial/web provider bisa dipakai dan kamu tahu cara mengembalikan aturan firewall. Kunci perangkat Tailscale yang kedaluwarsa atau gangguan login bisa membuat jalur privat tidak tersedia. Jangan mematikan masa berlaku kunci tanpa mempertimbangkan risiko perangkat yang dicuri.
+Sebelum menutup akses SSH dari internet publik, pastikan kamu punya **rencana cadangan (pemulihan)**. Pastikan konsol serial/web dari penyedia VPS atau cloud bisa kamu akses dan kamu tahu cara mengembalikan aturan firewall jika terjadi masalah. Kenapa ini penting? Karena kunci perangkat Tailscale bisa kedaluwarsa (*key expiry*) atau sewaktu-waktu ada gangguan login yang membuat jalur privat sementara tidak tersedia. Jangan mematikan masa berlaku kunci tanpa mempertimbangkan risiko keamanan apabila perangkatmu hilang atau dicuri.
 
-Jika memakai UFW yang sudah aktif, periksa aturannya:
+Jika servermu memakai **UFW** yang sudah aktif, periksa daftar aturan saat ini:
 
 ```bash
 # di server
@@ -51,15 +62,15 @@ sudo ufw status verbose
 sudo ufw status numbered
 ```
 
-Bila diperlukan oleh susunan firewallmu, izinkan hanya SSH melalui antarmuka Tailscale:
+Bila dibutuhkan oleh susunan firewallmu, izinkan SSH hanya melalui antarmuka jaringan Tailscale (`tailscale0`):
 
 ```bash
 sudo ufw allow in on tailscale0 to any port 22 proto tcp
 ```
 
-Tailscale juga memasang aturan netfilter sendiri secara bawaan; urutan aturan dapat membuat lalu lintas Tailscale diterima sebelum aturan UFW. Karena itu, gunakan [grants](/posts/tailscale-grants-pemula/) untuk membatasi akses di tailnet dan uji hasilnya. Jangan menganggap UFW sendirian mengendalikan seluruh lalu lintas Tailscale.
+> **Catatan keamanan penting:** Tailscale secara bawaan memasang aturan `netfilter` sendiri di Linux. Urutan aturan tersebut bisa membuat lalu lintas Tailscale langsung diterima *sebelum* menyentuh aturan UFW. Karena itu, jangan mengandalkan UFW sendirian untuk membatasi perangkat mana saja di *tailnet* yang boleh mengakses server—gunakan [grants](/posts/tailscale-grants-pemula/) untuk membatasi akses di level *tailnet* dan uji hasilnya.
 
-Hapus aturan UFW yang mengizinkan SSH dari antarmuka publik setelah mengenali nomor dan cakupannya. Contoh sintaksnya:
+Setelah yakin jalur privat aman, hapus aturan UFW yang mengizinkan SSH dari antarmuka publik. Kenali dulu nomor aturan dan cakupannya dari `sudo ufw status numbered`, lalu hapus:
 
 ```bash
 # ganti NOMOR_ATURAN dengan nomor aturan publik yang sudah diperiksa
@@ -67,15 +78,20 @@ sudo ufw delete NOMOR_ATURAN
 sudo ufw status numbered
 ```
 
-Nomor bergeser setiap kali aturan dihapus. Baca ulang daftar sebelum menghapus aturan berikutnya. Periksa aturan IPv4, IPv6, profil `OpenSSH`, dan aturan luas lain yang mungkin masih mengizinkan port tersebut. Jangan mengaktifkan UFW dari nol hanya dengan potongan panduan ini; ikuti [panduan UFW tanpa terkunci](/posts/debian-firewall-ufw/).
+**Hati-hati:** Setiap kali satu aturan dihapus, **nomor aturan di bawahnya akan bergeser**! Selalu jalankan dan baca ulang `sudo ufw status numbered` sebelum menghapus aturan berikutnya. Periksa aturan IPv4, IPv6, profil `OpenSSH`, serta aturan luas lain yang mungkin masih membuka port 22. Jangan mengaktifkan UFW dari nol hanya berbekal potongan panduan ini; ikuti [panduan UFW tanpa terkunci](/posts/debian-firewall-ufw/) jika baru mau memasang UFW.
 
-Di firewall provider, cabut izin masuk TCP port SSH dari internet untuk IPv4 maupun IPv6. Jangan menghapus akses yang masih dibutuhkan layanan lain atau menghalangi konektivitas Tailscale keluar.
+Terakhir, jika penyedia VPS/cloud kamu memiliki **firewall di dasbor provider**, cabut izin masuk TCP port SSH dari internet publik untuk IPv4 maupun IPv6. Pastikan kamu tidak menghapus akses yang masih dibutuhkan layanan lain atau memblokir koneksi keluar yang dipakai Tailscale.
 
 ## Buktikan dua hasil yang berbeda
 
-Buka **koneksi SSH baru** melalui IP Tailscale; sesi lama yang masih hidup bukan bukti aturan baru benar. Dari perangkat/jaringan luar, uji juga koneksi ke IP publik server pada port SSH. Uji kedua keluarga IP jika server punya IPv6 publik. Hasil yang dicari: login privat berhasil, koneksi publik baru gagal.
+Jangan langsung menutup sesi SSH lama sebelum melakukan dua pengujian ini:
 
-Jika privat gagal setelah perubahan, gunakan sesi lama atau konsol provider untuk memulihkan aturan yang tadi dicatat. Jangan menutup sesi terakhir sebelum dua pemeriksaan itu selesai.
+1. **Uji jalur privat:** Buka **koneksi SSH baru** dari laptop ke IP Tailscale server. (Sesi lama yang masih hidup bukanlah bukti bahwa aturan firewall baru sudah benar!)
+2. **Uji jalur publik:** Dari perangkat atau jaringan luar, coba sambungkan SSH ke IP publik server. Uji baik IPv4 maupun IPv6 jika servermu punya IPv6 publik.
+
+Hasil yang kamu cari harus kontras: **login lewat IP Tailscale berhasil**, sedangkan **koneksi baru ke IP publik gagal**.
+
+Jika jalur privat ternyata gagal setelah firewall diubah, segera pakai sesi lama yang masih terbuka atau konsol web provider untuk mengembalikan aturan firewall yang tadi kamu catat. Jangan menutup sesi terakhir sampai kedua pemeriksaan di atas beres.
 
 ## Referensi
 

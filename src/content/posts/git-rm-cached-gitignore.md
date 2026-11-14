@@ -6,11 +6,15 @@ tags: ["git", "tips", "pemula"]
 description: "Menambahkan .env atau node_modules ke .gitignore sesudah telanjur di-commit nggak bikin Git berhenti melacaknya. Lepas dulu pakai git rm --cached."
 ---
 
-Sudah nulis `.env` atau `dist/` di dalam `.gitignore`, tapi tiap kali berkas itu berubah masih saja nongol di `git status`? Penyebabnya sederhana: `.gitignore` hanya berlaku buat berkas yang belum pernah dikenal Git (*untracked*). Begitu sebuah berkas pernah masuk *commit* walaupun cuma sekali, Git mencatatnya sebagai berkas resmi (*tracked*) dan aturan di `.gitignore` langsung dicuekin untuk berkas itu.
+Pernah mengalami ini? Kamu sudah menambahkan `.env` atau `dist/` ke dalam file `.gitignore` (file daftar berkas yang ingin diabaikan Git), tetapi setiap kali isi `.env` berubah, namanya tetap saja muncul di `git status`!
 
-## Solusinya: lepas dari catatan Git tanpa menghapus berkas aslinya
+Penyebabnya sebenarnya sangat sederhana: **`.gitignore` hanya berlaku untuk berkas baru yang belum pernah dikenal Git (*untracked*)**. Begitu sebuah berkas sudah pernah masuk ke dalam *commit* walaupun cuma sekali, Git menandainya sebagai berkas resmi yang dilacak (*tracked*). Setelah berstatus *tracked*, aturan `.gitignore` akan langsung diabaikan untuk berkas itu.
 
-Jangan pakai `git rm <berkas>` biasa karena itu bakal ikut menghapus berkasnya dari laptopmu. Tambahkan opsi `--cached` supaya Git hanya menghapus berkas itu dari daftar lacakannya (*index*), sementara berkas aslinya di folder kerjamu tetap aman:
+## 1. Solusinya: lepas dari pantauan Git tanpa menghapus berkas aslinya
+
+Jangan pernah memakai `git rm <berkas>` biasa, karena perintah itu juga akan **menghapus berkas fisiknya** dari laptopmu!
+
+Tambahkan opsi **`--cached`** supaya Git hanya mencabut berkas itu dari daftar lacakannya (*staging/index*), sementara file `.env` asli di folder kerjamu tetap utuh aman di tempatnya:
 
 ```bash
 echo ".env" >> .gitignore
@@ -18,7 +22,9 @@ git rm --cached .env
 git commit -m "chore: stop tracking .env"
 ```
 
-Kalau yang telanjur masuk adalah satu folder penuh seperti `node_modules/` atau `.idea/`, tambahkan opsi `-r` (*recursive*):
+*(Penjelasan baris pertama: `echo ".env" >> .gitignore` menambahkan teks `.env` ke baris paling bawah `.gitignore` tanpa menimpa isi sebelumnya).*
+
+Jika yang telanjur masuk adalah satu folder penuh—seperti `node_modules/` atau `.idea/`—tambahkan opsi `-r` (*recursive*, mencakup seluruh folder beserta semua file di dalamnya):
 
 ```bash
 echo "node_modules/" >> .gitignore
@@ -26,34 +32,38 @@ git rm -r --cached node_modules/
 git commit -m "chore: remove node_modules from git tracking"
 ```
 
-Sehabis *commit* di atas selesai, ubah isi `.env` sesuka hati lalu cek `git status`. Berkas itu tidak akan pernah ikut terdeteksi lagi.
+Setelah *commit* di atas selesai dibuat, coba ubah isi `.env` lalu cek `git status`. Berkas itu sekarang benar-benar sudah diabaikan dan tidak akan muncul lagi!
 
-## Cek aturan mana yang mengabaikan sebuah berkas
+## 2. Mengecek aturan mana yang menahan sebuah berkas
 
-Kadang kebalikannya yang kejadian: kamu mau menambahkan berkas baru, tapi Git menolak karena dianggap masuk daftar abaikan, padahal kamu merasa tidak pernah menulisnya di `.gitignore`. Pakai `git check-ignore -v` untuk melacak baris aturan mana yang menahan berkas tersebut:
+Terkadang kejadiannya terbalik: kamu mau memasukkan berkas baru, tetapi Git terus mengabaikannya padahal kamu merasa tidak pernah menuliskannya di `.gitignore`. Gunakan `git check-ignore -v` untuk melacak persis baris aturan mana yang menahan berkas tersebut:
 
 ```bash
 git check-ignore -v build/output.bin
 ```
 
-Outputnya langsung menunjuk nama berkas konfigurasi beserta nomor barisnya:
+Keluarannya langsung menunjuk nama file aturan beserta nomor barisnya:
 
 ```text
 .gitignore:14:*.bin	build/output.bin
 ```
 
-Kalau memang satu berkas `.bin` itu wajib masuk repo sebagai pengecualian, tambahkan tanda seru (`!`) di bawah aturan `*.bin` pada `.gitignore`:
+Ternyata baris ke-14 di `.gitignore` melarang semua berkas `.bin`! Jika satu berkas tertentu seperti `build/output.bin` itu memang wajib masuk repo sebagai pengecualian, tambahkan tanda seru (`!`, artinya "kecuali ini") tepat di bawah aturan `*.bin` pada `.gitignore`:
 
 ```text
 *.bin
 !build/output.bin
 ```
 
-## Peringatan penting soal berkas rahasia (`.env` dan kunci API)
+## 3. Peringatan keras soal berkas rahasia (`.env` dan kunci API)
 
-Perintah `git rm --cached .env` hanya menghentikan pelacakan mulai dari *commit* terbaru ke depan. Kalau berkas `.env` berisi *password database* atau *API key* itu sebelumnya **sudah sempat di-*push* ke GitHub/GitLab**, isinya masih tersimpan jelas di riwayat *commit* lama dan siapa pun yang punya akses ke repo bisa membukanya.
+Pahami batasan penting ini: perintah `git rm --cached .env` hanya menghentikan pelacakan **mulai dari *commit* terbaru ke depan**.
 
-Jangan cuma menghapus berkasnya dari Git. Segera cabut (*revoke*) dan ganti (*rotate*) semua kunci rahasia yang sempat bocor di dalam berkas tersebut. Anggap kunci yang pernah menyentuh *remote repository* sudah tidak aman lagi meskipun *commit*-nya dihapus paksa.
+Jika file `.env` yang berisi *password database* atau *API key* itu sebelumnya **sudah sempat di-*push* ke GitHub atau GitLab**, maka salinannya masih tersimpan jelas di riwayat *commit* lama! Siapa pun yang punya akses ke repo tersebut masih bisa membuka *commit* sebelumnya dan melihat isinya.
+
+Karena itu, jangan cuma berhenti setelah menghapus berkasnya dari Git:
+- Segera cabut (*revoke*) dan ganti (*rotate*) semua password, token, dan kunci API yang pernah tercantum di dalam berkas tersebut.
+- Anggap kredensial apa pun yang pernah menyentuh server *remote* sudah bocor, bahkan meskipun *commit*-nya sudah dihapus paksa.
 
 ## Seri tips Git
 

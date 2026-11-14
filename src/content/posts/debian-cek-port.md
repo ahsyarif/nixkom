@@ -6,18 +6,34 @@ tags: ["debian", "linux", "keamanan", "pemula", "ss", "nmap", "port"]
 description: "Baca keluaran ss -lntup, cari proses di balik tiap port, bind layanan ke localhost, lalu pindai dari luar dengan nmap secara bertanggung jawab."
 ---
 
-Pertanyaan keamanan paling dasar: layanan apa saja di servermu yang bisa dijangkau dari jaringan? Ada dua sudut pandang. Dari **dalam** server, `ss` menunjukkan siapa yang mendengarkan di port mana. Dari **luar**, `nmap` menunjukkan port mana yang benar-benar tembus lewat firewall. Keduanya perlu, karena jawabannya bisa berbeda.
+Jika alamat IP server adalah alamat sebuah gedung kantor, maka **port** adalah nomor-nomor pintu atau loket di dalam gedung tersebut—misalnya pintu `22` untuk SSH, pintu `80` dan `443` untuk web, atau pintu `5432` untuk database PostgreSQL.
 
-Perintah bertanda `# di server` dijalankan di server Debian 13, `# di laptop` di laptopmu. `203.0.113.10` adalah IP dokumentasi; **ganti dengan IP servermu**.
+Pertanyaan keamanan paling dasar saat mengelola server adalah: **pintu mana saja yang sedang terbuka, dan siapa saja yang bisa mengetuknya?**
 
-## Baca daftar port dengan ss
+Untuk menjawabnya, kita butuh pemeriksaan dari **dua sudut pandang**:
+1. **Dari dalam server (`ss`)**: melihat program apa saja yang sedang membuka pintu dan menunggu koneksi.
+2. **Dari luar server (`nmap`)**: mengetuk dari internet untuk membuktikan pintu mana yang benar-benar tembus melewati firewall.
+
+Keduanya penting karena jawabannya bisa berbeda—bisa saja sebuah program membuka pintu ke semua arah, tetapi firewall menahannya di pagar depan (atau sebaliknya).
+
+Perintah bertanda `# di server` dijalankan di server Debian 13, sedangkan `# di laptop` di laptopmu. `203.0.113.10` adalah IP contoh; **ganti dengan IP servermu**.
+
+## 1. Melihat daftar pintu yang terbuka dari dalam (`ss`)
+
+Jalankan perintah berikut di server:
 
 ```bash
 # di server
 sudo ss -lntup
 ```
 
-Arti opsinya: `-l` hanya soket yang *listening*, `-n` angka (tanpa menerjemahkan nama), `-t` TCP, `-u` UDP, `-p` proses pemilik soket (butuh `sudo`). Contoh keluaran yang dipersingkat:
+Kenapa banyak huruf di `-lntup`? Ini arti masing-masing opsinya:
+- `-l` (*listening*): hanya tampilkan soket/pintu yang sedang terbuka menunggu koneksi masuk.
+- `-n` (*numeric*): tampilkan angka port (mis. `22`), bukan namanya (`ssh`), agar jelas dan cepat.
+- `-t` (*TCP*) dan `-u` (*UDP*): sertakan protokol TCP maupun UDP.
+- `-p` (*process*): tampilkan nama program/aplikasi pemilik pintu tersebut (membutuhkan `sudo` agar semua proses terlihat).
+
+Contoh keluaran yang sudah diringkas (ini hanya ilustrasi bentuknya, bukan hasil dari servermu):
 
 ```text
 Netid State  Recv-Q Send-Q Local Address:Port  Peer Address:Port Process
@@ -28,21 +44,21 @@ tcp   LISTEN 0      128    [::]:22              [::]:*          users:(("sshd",p
 tcp   LISTEN 0      511    *:80                 *:*             users:(("nginx",pid=902,fd=6))
 ```
 
-Ini ilustrasi bentuknya, bukan keluaran servermu. Yang perlu dibaca adalah kolom `Local Address:Port`:
+Bagian terpenting bagi pemula adalah kolom **`Local Address:Port`**. Alamat di sebelah kiri tanda titik dua menentukan **dari mana** pintu itu bisa diketuk:
 
-| Alamat lokal | Artinya |
+| Alamat lokal | Artinya untuk pemula |
 |---|---|
-| `127.0.0.1:5432` atau `[::1]:5432` | Hanya menerima koneksi dari server itu sendiri (loopback). Tidak terjangkau dari internet. |
-| `0.0.0.0:22` | Mendengarkan di semua antarmuka IPv4. Terjangkau dari luar kalau firewall mengizinkan. |
-| `[::]:22` | Mendengarkan di semua alamat IPv6; pada soket dual-stack dapat menerima IPv4 juga. Periksa kedua keluarga alamat. |
-| `*:80` | Wildcard; bergantung pada tampilan, biasanya mencakup semua alamat. |
-| IP tertentu, mis. `10.0.0.5:3000` | Hanya antarmuka dengan IP itu, misalnya jaringan privat. |
+| `127.0.0.1:5432` atau `[::1]:5432` | **Aman (khusus dalam rumah).** Alamat *loopback* (`localhost`). Hanya program di dalam server itu sendiri yang bisa terhubung. Tidak bisa diakses dari internet. |
+| `0.0.0.0:22` | **Terbuka ke semua jalur IPv4.** Mendengarkan di semua kartu jaringan IPv4, termasuk IP publik. Bisa diakses dari internet jika firewall mengizinkannya. |
+| `[::]:22` | **Terbuka ke semua jalur IPv6.** Pada sistem dual-stack, soket ini sering kali juga menerima IPv4 sekaligus. Jadi cek keduanya! |
+| `*:80` | **Wildcard.** Biasanya mencakup semua alamat jaringan di server. |
+| IP tertentu, mis. `10.0.0.5:3000` | **Khusus satu jalur.** Hanya mendengarkan pada jaringan dengan IP tersebut (misalnya jaringan VPN privat). |
 
-TCP berstatus `LISTEN` menunggu koneksi. UDP tidak punya koneksi, jadi statusnya `UNCONN`; baris itu tetap berarti ada proses yang menerima paket di port tersebut.
+Catatan kecil soal kolom `State`: koneksi TCP yang menunggu tamu bertuliskan `LISTEN`. Sementara UDP tidak memakai konsep "sambungan tetap" seperti TCP, jadi statusnya tertulis `UNCONN`—baris itu tetap berarti ada program yang siap menerima paket UDP di port tersebut.
 
-## Cari layanan di balik port
+## 2. Mencari tahu program di balik sebuah port
 
-Kolom `Process` memberi nama dan PID. Untuk detail lebih lanjut:
+Kalau kamu melihat ada port asing yang menyala dan penasaran itu program apa, lihat kolom `Process` untuk mencari **PID** (nomor ID proses, misalnya `801` pada `postgres`), lalu selidiki asalnya:
 
 ```bash
 # di server
@@ -51,58 +67,79 @@ ps -p 801 -o pid,user,cmd
 systemctl status 801
 ```
 
-`systemctl status <pid>` menunjukkan unit systemd yang memiliki proses itu. Port yang kamu tidak kenal bukan otomatis jahat, tapi harus jelas asal-usulnya: paket apa, unit apa, kenapa nyala. Kalau memang tidak dipakai, hentikan dan nonaktifkan:
+- `ps -p 801 -o pid,user,cmd` menunjukkan akun Linux mana yang menjalankan proses itu dan perintah lengkapnya.
+- `systemctl status 801` menunjukkan layanan (`unit systemd`) mana yang mengelola proses tersebut.
+
+Port yang belum kamu kenal belum tentu virus atau program jahat—bisa saja itu layanan bawaan sistem. Namun, semua port yang menyala harus jelas asal-usulnya: paket apa, untuk apa, dan apakah memang dibutuhkan. Jika yakin suatu layanan memang tidak dipakai, matikan dan cegah menyala otomatis saat boot:
 
 ```bash
-# di server
+# di server (ganti nama-layanan dengan nama unit dari systemctl status)
 sudo systemctl disable --now nama-layanan
 ```
 
-Gunakan nama unit dari hasil `systemctl status`, dan pastikan layanan itu memang tidak dibutuhkan sebelum menjalankannya.
+Pastikan layanan itu benar-benar tidak dibutuhkan sistem sebelum mematikannya.
 
-## Bind ke localhost: database dan server pengembangan
+## 3. Kunci layanan internal ke `localhost` (dan pakai SSH tunnel)
 
-Layanan yang hanya dipakai aplikasi di server yang sama sebaiknya mendengarkan di `127.0.0.1`. Kalau `ss` menunjukkan database di `0.0.0.0:5432`, cari opsi *bind* di konfigurasinya, misalnya `listen_addresses = 'localhost'` di PostgreSQL atau `bind-address = 127.0.0.1` di MariaDB. Cek lagi dengan `ss` setelah restart layanan.
+Layanan yang cuma dipakai oleh aplikasi di dalam server yang sama—seperti database (PostgreSQL, MySQL/MariaDB) atau Redis—sebaiknya **hanya mendengarkan di `127.0.0.1`** (*loopback*).
 
-Server pengembangan juga begitu. Vite misalnya, bawaannya hanya `localhost`; jangan jalankan dengan `--host 0.0.0.0` di VPS publik hanya agar bisa dibuka dari laptop. Pakai **SSH local tunnel**:
+Jika `ss` memperlihatkan database-mu mendengarkan di `0.0.0.0:5432`, ubah pengaturannya agar terikat (*bind*) ke localhost saja: misalnya `listen_addresses = 'localhost'` di PostgreSQL atau `bind-address = 127.0.0.1` di MariaDB. Setelah itu, restart layanannya dan cek ulang dengan `ss`.
+
+Hal yang sama berlaku untuk **server pengembangan** (*dev server*), misalnya Vite. Jangan menjalankan `npm run dev -- --host 0.0.0.0` di VPS publik hanya supaya aplikasinya bisa dibuka dari browser laptopmu!
+
+Cara yang aman adalah memakai **SSH local tunnel**—ibarat memasang pipa rahasia terenkripsi dari laptop ke dalam rumah server:
 
 ```bash
 # di laptop
 ssh -o ExitOnForwardFailure=yes -N -L 127.0.0.1:5173:127.0.0.1:5173 admin@203.0.113.10
 ```
 
-Bagian `127.0.0.1:5173:127.0.0.1:5173` berarti: dengarkan di port 5173 laptop (hanya loopback laptop), teruskan lewat SSH ke `127.0.0.1:5173` **di server**. `-N` berarti tidak membuka shell, hanya tunnel. Dengan tunnel hidup, buka `http://localhost:5173` di browser laptop. Hentikan dengan `Ctrl+C`. Karena port server tetap di loopback, tidak ada yang perlu dibuka di firewall.
+Cara membaca perintah ini:
+- `-L 127.0.0.1:5173:127.0.0.1:5173`: dengarkan di port `5173` milik laptopmu, lalu teruskan lalu lintasnya lewat jalur SSH ke alamat `127.0.0.1:5173` **di server**.
+- `-N`: tidak perlu membuka layar terminal server, cukup buka terowongannya saja.
+- `-o ExitOnForwardFailure=yes`: langsung berhenti kalau port `5173` di laptop kebetulan sudah dipakai program lain. (Jika bentrok, ubah saja angka port laptopnya menjadi misalnya `-L 127.0.0.1:5174:127.0.0.1:5173`).
 
-Kalau port 5173 di laptop sudah terpakai, SSH akan menolak membuat tunnel; pilih port lokal lain, misalnya `-L 127.0.0.1:5174:127.0.0.1:5173`.
+Selama perintah itu berjalan, buka `http://localhost:5173` di browser laptopmu—kamu sedang melihat aplikasi yang berjalan di server dengan aman tanpa harus membuka port `5173` di firewall! Tekan `Ctrl+C` di terminal kalau sudah selesai.
 
-## Pindai dari luar dengan nmap
+## 4. Mengetuk dari luar dengan `nmap`
 
-`ss` hanya bilang apa yang mendengarkan; ia tidak tahu apakah firewall menghalanginya. Untuk melihat dari sisi penyerang, pindai dari mesin lain, misalnya laptop. Pasang `nmap` di sana, bukan di server:
+Ingat, `ss` hanya menunjukkan pintu apa yang dibuka oleh program di dalam server; `ss` tidak tahu apakah pintu itu sebenarnya sudah dihadang oleh satpam firewall (UFW atau *cloud firewall* provider).
+
+Untuk melihat server dari sudut pandang orang luar/penyerang, lakukan pemindaian dari mesin lain—misalnya dari laptopmu. Pasang `nmap` di laptop, bukan di server:
 
 ```bash
-# di laptop (Debian/Ubuntu; di macOS: brew install nmap)
+# di laptop (Debian/Ubuntu; untuk macOS pakai: brew install nmap)
 sudo apt install nmap
 nmap -Pn -p- 203.0.113.10
 ```
 
-`-Pn` melewati ping, `-p-` memindai semua 65.535 port TCP. Pemindaian penuh bisa lambat; untuk cek cepat, `nmap -Pn 203.0.113.10` hanya memeriksa 1000 port paling umum.
+Arti opsinya:
+- `-Pn`: lewati tes *ping* awal (karena banyak server memblokir ping sehingga dikira mati oleh `nmap`).
+- `-p-`: periksa seluruh 65.535 port TCP. Karena ini memakan waktu cukup lama, untuk pengecekan cepat kamu bisa menjalankan `nmap -Pn 203.0.113.10` tanpa `-p-` (hanya memindai 1.000 port paling umum).
 
-Contoh itu hanya memeriksa TCP melalui IPv4. Kalau server punya IPv6 publik, ulangi dari jaringan yang mendukung IPv6 dengan `nmap -6 -Pn -p- ALAMAT_IPV6_SERVER` setelah mengganti alamatnya. UDP perlu pemeriksaan terpisah, misalnya `sudo nmap -sU -Pn -p 53,123 ALAMAT_SERVER` untuk layanan yang memang kamu jalankan; hasil `open|filtered` belum membuktikan layanan terbuka.
+Contoh di atas hanya mengecek TCP melalui IPv4. Jika servermu punya IPv6 publik, uji juga dari jaringan yang mendukung IPv6 dengan `nmap -6 -Pn -p- ALAMAT_IPV6_SERVER`. Untuk layanan UDP (seperti DNS port 53 atau NTP port 123), lakukan pengecekan terpisah dengan `sudo nmap -sU -Pn -p 53,123 ALAMAT_SERVER`—perlu dicatat bahwa hasil `open|filtered` pada UDP belum membuktikan layanannya terbuka.
 
-**Pindai hanya server milikmu atau yang kamu punya izin tertulis untuk diuji.** Memindai milik orang lain bisa melanggar aturan provider dan hukum. Sebagian provider meminta pemberitahuan lebih dulu; baca kebijakannya.
+> **Aturan etika dan hukum:** **Hanya pindai server milikmu sendiri atau server yang kamu punya izin tertulis untuk mengujinya.** Memindai server milik orang lain dapat melanggar hukum dan aturan penyedia hosting. Bahkan beberapa provider VPS meminta pemberitahuan lebih dulu sebelum kamu memindai IP servermu sendiri; cek kebijakan providermu.
 
-Arti status utama nmap: `open` ada layanan yang menjawab, `closed` terjangkau tapi tidak ada layanan, `filtered` paket tertahan (biasanya firewall) sehingga nmap tidak bisa memastikan.
+Cara membaca tiga status utama dari `nmap`:
+- **`open`**: pintu terbuka, ada layanan yang menjawab ketukan dari internet.
+- **`closed`**: server bisa dijangkau, tetapi tidak ada program yang mendengarkan di port tersebut.
+- **`filtered`**: ketukan paket ditahan di tengah jalan (biasanya oleh firewall), sehingga `nmap` tidak mendapat jawaban apakah pintunya terbuka atau tidak.
 
-## Menafsirkan hasil dengan hati-hati
+## 5. Cara membaca hasil tanpa salah paham
 
-- **Port terbuka bukan otomatis kerentanan.** Port 22 yang terbuka dengan SSH berkunci dan terbarui itu wajar. Yang berisiko adalah layanan yang tidak perlu publik, tanpa autentikasi, atau berversi lama.
-- **Tertutup/filtered di nmap bukan berarti tidak mendengarkan.** Kalau `ss` menunjukkan layanan di `0.0.0.0:6379` tetapi nmap dari luar tidak melihatnya, kemungkinan firewall menahannya. Itu perlindungan, tapi satu lapis. Menutup layanan di sumbernya (bind ke localhost) lebih kuat daripada hanya mengandalkan firewall.
-- **Cocokkan kedua sudut pandang.** Port dari `ss` yang tidak kamu harapkan terbuka → periksa. Port terbuka di nmap tapi tidak ada di `ss` → mungkin ada NAT, proxy provider, atau pemetaan Docker; telusuri sebelum menyimpulkan. Soal Docker, lihat catatannya di [artikel UFW](/posts/debian-firewall-ufw/).
-- Hasil nmap menggambarkan saat dipindai dari satu lokasi. Pindai ulang setelah mengubah firewall atau layanan.
+- **Port terbuka bukan otomatis berarti servermu rentan.** Port `22` yang berstatus `open` untuk SSH (dengan login pakai kunci dan sistem terbarui) adalah hal wajar. Yang berbahaya adalah layanan internal (seperti database atau panel debug) yang ikut terbuka ke publik tanpa autentikasi.
+- **Status `filtered` di `nmap` bukan alasan membiarkan layanan mendengarkan di `0.0.0.0`.** Kalau `ss` menampilkan `0.0.0.0:6379` (Redis), lalu `nmap` tidak melihatnya karena ditahan UFW, itu artinya pertahananmu cuma satu lapis. Jika suatu hari UFW mati atau salah ubah, Redis langsung bocor ke dunia! Selalu kunci layanan internal ke `127.0.0.1` langsung dari konfigurasinya.
+- **Bandingkan sudut pandang dalam dan luar:**
+  - Ada di `ss`, tidak seharusnya publik → periksa atau ikat ke `127.0.0.1`.
+  - Muncul `open` di `nmap`, tetapi tidak terlihat di `ss` → kemungkinan ada NAT, proxy dari provider, atau pemetaan port oleh Docker (ingat catatan Docker di [artikel UFW](/posts/debian-firewall-ufw/)). Telusuri penyebabnya sebelum menyimpulkan.
+- Hasil `nmap` hanya memotret kondisi pada saat itu dari jaringan tempatmu memindai. Ulangi pemindaian setiap kali kamu mengubah aturan firewall atau menambah layanan baru.
 
 ## Cek akhir
 
-Pada server yang baru kamu amankan, kondisi sehatnya kira-kira begini: `ss -lntup` hanya menampilkan SSH (dan 80/443 kalau melayani web) di alamat publik, sisanya di loopback; `nmap` dari laptop melaporkan hanya port yang kamu niatkan.
+Pada server yang baru saja diamankan dengan sehat, gambarannya kira-kira begini:
+- `ss -lntup` hanya menampilkan SSH (dan port `80`/`443` kalau melayani web) di alamat publik (`0.0.0.0` / `[::]`), sementara database dan layanan internal lainnya berada di `127.0.0.1`.
+- `nmap` dari laptop hanya melaporkan port-port yang memang sengaja kamu buka untuk publik.
 
 ## Referensi
 

@@ -6,26 +6,30 @@ tags: ["git", "tips", "alias"]
 description: "Sepuluh alias ~/.gitconfig buat lihat log bercabang, batalin commit terakhir, amend cepat, dan bersih-bersih branch."
 ---
 
-Siapa yang masih ngetik `git log --graph --oneline --decorate --all` lengkap tiap mau ngecek pohon *branch*? Taruh saja di `[alias]` dalam `~/.gitconfig`. Sepuluh alias di bawah ini yang paling sering kepakai di terminal saya dari pagi sampai sore.
+Pernah merasa capek mengetik perintah Git yang panjang berulang-ulang setiap hari—seperti `git log --graph --oneline --decorate --all` cuma untuk melihat riwayat *branch*?
 
-## Daftar alias
+Di Git, kamu bisa membuat **alias** (nama singkatan buatan sendiri) di dalam bagian `[alias]` pada file `~/.gitconfig` (file setelan Git global yang berlaku untuk semua proyek di komputermu). Dengan alias, perintah panjang bisa dipanggil cukup dengan dua atau tiga huruf. Sepuluh alias di bawah ini adalah singkatan yang paling sering membantu pekerjaan harian di terminal.
 
-| Alias | Perintah aslinya | Buat apa |
+## 1. Daftar 10 alias dan fungsinya
+
+Sebelum menyalinnya, mari pahami dulu apa tugas masing-masing alias ini:
+
+| Alias | Perintah aslinya | Penjelasan untuk pemula |
 |---|---|---|
-| `st` | `status -sb` | Cek status singkat satu baris per berkas, lengkap sama info *branch* dan *upstream*. |
-| `lg` | `log --graph --oneline --decorate --all` | Lihat pohon riwayat *commit* semua *branch* dalam tampilan padat. |
-| `last` | `log -1 HEAD --stat` | Intip *commit* terakhir plus daftar berkas yang ikut berubah. |
-| `sw` | `switch` | Pindah *branch* pakai `switch` tanpa ngetik penuh. |
-| `undo` | `reset --soft HEAD~1` | Bongkar *commit* terakhir, tapi perubahannya tetap tersimpan di *staging*. |
-| `unstage` | `restore --staged` | Keluarkan berkas dari *staging area* tanpa menghapus isi editannya. |
-| `amend` | `commit --amend --no-edit` | Sisipkan berkas yang ketinggalan ke *commit* terakhir tanpa buka editor. |
-| `pushf` | `push --force-with-lease` | *Force push* yang nolak jalan kalau *remote* ternyata sudah berubah duluan. |
-| `wip` | `!git add -A && git commit -m wip --no-verify` | Bungkus semua editan jadi *commit* sementara tanpa dicegat *hook*. |
-| `gone` | `!git fetch -p && git branch -vv \| awk '/: gone]/{print $1}' \| xargs -r git branch -D` | Sapu bersih *branch* lokal yang pasangannya di *remote* sudah dihapus. |
+| `st` | `status -sb` | Mengecek status perubahan berkas dengan tampilan super ringkas (satu baris per berkas), lengkap dengan nama *branch* aktif dan status hubungannya dengan server (*upstream*). |
+| `lg` | `log --graph --oneline --decorate --all` | Menampilkan gambar pohon riwayat *commit* semua *branch* secara padat dan mudah dibaca. |
+| `last` | `log -1 HEAD --stat` | Mengintip isi *commit* paling akhir beserta daftar berkas apa saja yang ikut berubah di dalamnya. |
+| `sw` | `switch` | Singkatan untuk pindah *branch* memakai `git switch` (misalnya `git sw main`). |
+| `undo` | `reset --soft HEAD~1` | Membongkar *commit* terakhir yang baru dibuat di lokal, tetapi seluruh editanmu tetap aman tersimpan di keranjang siap *commit* (*staging area*). |
+| `unstage` | `restore --staged` | Mengeluarkan berkas yang telanjur di-`git add` kembali ke luar *staging area* tanpa menghapus ketikanmu. |
+| `amend` | `commit --amend --no-edit` | Menempelkan perubahan baru yang ketinggalan ke *commit* terakhir tanpa membuka editor untuk mengubah pesan *commit*-nya. |
+| `pushf` | `push --force-with-lease` | Mengirim ulang riwayat (*force push*) dengan pengaman—otomatis menolak jalan kalau ternyata ada rekan tim yang baru saja *push* ke *branch* yang sama di server. |
+| `wip` | `!git add -A && git commit -m wip --no-verify` | Membungkus semua perubahan saat ini menjadi satu *commit* sementara bertuliskan `"wip"` (*work in progress*) dengan melewati pengecekan otomatis (*hook*). |
+| `gone` | `!git fetch -p && git branch -vv \| awk '/: gone]/{print $1}' \| xargs -r git branch -D` | Menyapu bersih *branch* di laptopmu yang pasangannya di server (*remote*) sudah dihapus setelah digabung. |
 
-## Versi siap salin
+## 2. Versi siap salin ke `~/.gitconfig`
 
-Tempel ke bagian `[alias]` di `~/.gitconfig`:
+Buka file `~/.gitconfig` di komputermu, lalu tempel blok ini di bagian bawah (tanda `!` di depan dua alias terakhir memberi tahu Git bahwa perintah itu dijalankan lewat terminal/shell biasa):
 
 ```ini
 [alias]
@@ -41,7 +45,7 @@ Tempel ke bagian `[alias]` di `~/.gitconfig`:
 	gone = "!git fetch -p && git branch -vv | awk '/: gone]/{print $1}' | xargs -r git branch -D"
 ```
 
-Kalau dijalankan, `git lg` ngasih tampilan kayak gini:
+Sebagai gambaran, saat kamu mengetik `git lg`, tampilannya di terminal akan rapi berbentuk pohon seperti ini:
 
 ```text
 * a4f81c2 (HEAD -> main, origin/main) Merge branch 'feat/dark-mode'
@@ -52,13 +56,21 @@ Kalau dijalankan, `git lg` ngasih tampilan kayak gini:
 * c8204ab initial navbar component layout
 ```
 
-## Tiga hal yang perlu kamu tahu
+## 3. Tiga hal penting yang wajib dipahami sebelum memakai alias ini
 
-`git undo` di atas memakai `--soft`, beda jauh dengan `reset --hard`. Waktu kamu jalankan `git undo`, *commit* terakhirnya lepas, tapi semua ketikanmu masih utuh di *staging area*. Pas banget dipakai kalau habis *commit* baru sadar ada satu berkas ketinggalan, salah tulis pesan, atau mau membongkar *commit* sementara yang tadi dibuat pakai `git wip`.
+### Bedakan `git undo` (`--soft`) dengan `reset --hard`
+`git undo` di atas menggunakan `--soft`, bukan `--hard`. Saat dijalankan, bungkus *commit* terakhirnya dilepas, tetapi seluruh perubahan kodemu **masih utuh** di *staging area*. Ini sangat berguna kalau kamu baru sadar ada satu berkas ketinggalan, salah tulis pesan, atau ingin membongkar lagi *commit* sementara yang tadi dibuat memakai `git wip`. (Jangan pernah gunakan `git reset --hard` kalau kamu tidak benar-benar ingin membuang kodemu!).
 
-Buat *force push* sesudah *rebase* atau `git amend`, biasakan pakai `git pushf` (`--force-with-lease`) daripada `--force` mentah. Git bakal ngecek dulu apakah posisi *branch* di server masih sama dengan yang terakhir kamu *fetch*. Kalau teman setimmu barusan *push* ke *branch* itu, perintahnya otomatis ditolak supaya kerjaan mereka nggak ketimpa.
+### Gunakan `git pushf` alih-alih `git push --force`
+Jika kamu mengubah *commit* yang sudah sempat di-*push* ke *branch* fitur pribadimu (misalnya sesudah `git amend` atau `git rebase`), Git meminta *force push*. Biasakan selalu memakai `git pushf` (`--force-with-lease`), jangan `--force` mentah. Dengan `--force-with-lease`, Git mengecek dulu apakah isi *branch* di server masih sama dengan catatan terakhir di laptopmu—jika ada teman yang baru saja mengirim *commit* ke sana, perintah langsung dibatalkan supaya kerjaan temanmu tidak tertimpa hilang.
 
-Terakhir, `git gone` enak dipakai sehabis banyak *pull request* digabung ke `main`. Perintah ini memangkas referensi *remote* yang sudah mati, mencari *branch* lokal yang bertanda `: gone]`, lalu menghapusnya. Karena di dalamnya pakai `-D`, pastikan dulu perubahan di *branch* itu memang sudah masuk ke `main`. Opsi `xargs -r` (jangan jalankan `git branch -D` kalau daftarnya kosong) bawaan GNU `xargs`, dan sudah didukung juga oleh `xargs` bawaan macOS sejak macOS 13.
+### Hati-hati saat memakai `git gone`
+Alias `git gone` sangat membantu bersih-bersih *branch* lama setelah banyak *pull request* selesai digabung ke `main`. Cara kerjanya:
+1. `git fetch -p`: memperbarui daftar *branch* dari server dan menghapus catatan *remote* yang sudah tidak ada.
+2. `git branch -vv | awk ...`: menyaring *branch* lokal yang status servernya bertanda `: gone]` (artinya pasangannya di server sudah dihapus).
+3. `xargs -r git branch -D`: langsung menghapus paksa *branch* lokal tersebut.
+
+Karena perintah di dalamnya memakai `-D` (hapus paksa tanpa cek), **pastikan dulu perubahan di *branch* yang mau dibersihkan itu memang sudah digabung ke `main`**, dan pastikan kamu sedang berdiri di `main` (bukan di dalam *branch* yang akan dihapus). Opsi `-r` pada `xargs` (mencegah `git branch -D` jalan saat daftar kosong) tersedia di GNU `xargs` Linux maupun `xargs` bawaan macOS sejak macOS 13.
 
 ## Seri tips Git
 

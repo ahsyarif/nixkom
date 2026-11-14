@@ -6,18 +6,22 @@ tags: ["git", "tips", "workflow"]
 description: "Memecah editan yang tercampur di satu berkas jadi beberapa commit kecil yang rapi pakai mode patch."
 ---
 
-Lagi benerin satu *bug*, tangan sering gatel ikut merapikan komponen di sebelahnya atau nyelipin `console.log` buat *debug* di berkas yang sama. Waktu mau *commit*, kalau langsung `git add .` semuanya malah kecampur jadi satu. Pakai `git add -p` (mode *patch*), kamu bisa pilih potongan perubahan (*hunk*) mana saja yang mau dimasukkan sekarang dan mana yang ditinggal buat *commit* berikutnya.
+Pernah mengalami situasi begini: niatnya cuma memperbaiki satu *bug* kecil di sebuah berkas, tetapi sekalian merapikan kode di baris lain dan menaruh beberapa `console.log` untuk pengecekan?
 
-## Cara pakainya
+Saat waktunya *commit*, kalau langsung mengetik `git add .`, semua perubahan tadi tercampur jadi satu *commit* besar yang berantakan. Padahal, cara terbaik menggunakan Git adalah memisahkan satu *commit* untuk satu tujuan yang jelas.
 
-Jalankan buat seluruh repo, atau sebut nama berkasnya langsung:
+Solusinya adalah **`git add -p`** (mode *patch*). Dengan `-p`, Git membagi perubahan di dalam sebuah berkas menjadi potongan-potongan kecil (disebut *hunk*), lalu menanyaimu satu per satu: potongan mana yang ingin dimasukkan ke keranjang siap *commit* (*staging area*) sekarang, dan mana yang mau ditinggal di folder kerja (*working tree*) untuk *commit* berikutnya.
+
+## 1. Cara menjalankan mode *patch*
+
+Kamu bisa menjalankannya untuk seluruh proyek, atau langsung menunjuk satu berkas spesifik:
 
 ```bash
 git add -p
 git add -p src/components/CheckoutForm.tsx
 ```
 
-Git bakal menyodorkan perubahan per potongan lalu nunggu kamu memilih:
+Git akan menampilkan satu potongan perubahan (*diff*) di layar, lalu berhenti di bagian bawah dan menunggu jawabanmu:
 
 ```text
 diff --git a/src/components/CheckoutForm.tsx b/src/components/CheckoutForm.tsx
@@ -36,48 +40,58 @@ index 4b92e11..90c42a8 100644
 (1/3) Stage this hunk [y,n,q,a,d,s,e,?]?
 ```
 
-## Tombol di mode patch
+Cara membaca tampilannya:
+- `(1/3)` artinya ini potongan ke-1 dari total 3 potongan perubahan yang ada di berkas itu.
+- Baris diawali `+` berwarna hijau adalah baris baru yang kamu tambahkan.
+- Baris diawali `-` berwarna merah adalah baris lama yang kamu hapus.
+
+## 2. Arti huruf pilihan di mode *patch*
+
+Di pertanyaan `[y,n,q,a,d,s,e,?]?`, ketik salah satu huruf berikut lalu tekan Enter:
 
 | Tombol | Artinya |
 |---|---|
-| `y` | Masukkan potongan (*hunk*) ini ke *staging*. |
-| `n` | Lewati potongan ini, biarkan tetap di *working tree*. |
-| `q` | Berhenti sekarang; potongan yang tadi sudah dipilih `y` tetap aman di *staging*. |
-| `a` | Masukkan potongan ini plus semua potongan sisanya di berkas yang sama. |
-| `d` | Lewati potongan ini dan sisa potongan di berkas yang sama. |
-| `s` | Pecah (*split*) potongan ini jadi bagian lebih kecil kalau ada baris pemisah di tengahnya. |
-| `e` | Buka potongan ini di editor buat dipotong manual per baris. |
-| `?` | Tampilkan contekan arti tiap huruf. |
+| `y` (*yes*) | **Masukkan** potongan ini ke *staging area* (ikut di-*commit* sekarang). |
+| `n` (*no*) | **Lewati** potongan ini, biarkan tetap di folder kerja untuk nanti. |
+| `q` (*quit*) | **Berhenti sekarang**; potongan yang tadi sudah dipilih `y` tetap aman di *staging*. |
+| `a` (*all*) | Masukkan potongan ini **plus semua potongan sisanya** di berkas yang sama. |
+| `d` (*done/skip*) | Lewati potongan ini **dan semua potongan sisanya** di berkas yang sama. |
+| `s` (*split*) | **Pecah** potongan ini menjadi bagian-bagian lebih kecil jika ada baris kosong/pemisah di tengahnya. |
+| `e` (*edit*) | Buka potongan ini di editor teks untuk **dipotong manual per baris**. |
+| `?` | Tampilkan contekan arti setiap huruf langsung di terminal. |
 
-## Motong baris manual pakai `e`
+## 3. Memotong baris secara manual memakai `e`
 
-Kadang dua perubahan nempel persis atas-bawah tanpa jeda baris, jadi tombol `s` nggak sanggup membelahnya. Tekan `e`, nanti Git membuka potongan itu di teks editor. Aturan ngeditnya cuma tiga:
+Terkadang ada dua baris perubahan yang letaknya berdempetan persis atas-bawah tanpa jeda baris di antaranya, sehingga tombol `s` (*split*) tidak bisa membelahnya. Di saat seperti itu, ketik `e`, maka Git akan membuka potongan tersebut di editor teksmu.
 
-- Kalau ada **baris tambahan (`+`) yang belum mau ikut di-*commit***, hapus saja satu baris `+` itu.
-- Kalau ada **baris hapus (`-`) yang belum mau ikut dihapus**, ganti tanda `-` di kolom pertama jadi spasi (` `) supaya dianggap baris biasa.
-- Baris lain yang sudah diawali spasi dan angka di kepala `@@` jangan diutak-atik; Git bakal ngitung ulang ukurannya otomatis waktu berkas disimpan.
+Kamu cukup mengikuti tiga aturan sederhana saat mengeditnya:
+- Jika ada **baris tambahan (`+`) yang belum mau ikut di-*commit*** sekarang: **hapus saja** seluruh baris `+` tersebut dari editor.
+- Jika ada **baris hapus (`-`) yang belum mau ikut dihapus** di *commit* ini: ubah tanda `-` di kolom paling kiri menjadi **spasi** (` `), supaya dianggap baris biasa yang tidak berubah.
+- Jangan mengutak-atik baris lain yang diawali spasi ataupun baris kepala yang bertanda `@@ ... @@`; Git akan menghitung ulang barisnya secara otomatis saat berkas disimpan dan ditutup.
 
-## Cek dulu sebelum commit
+## 4. Periksa ulang sebelum `git commit`
 
-Sehabis milih-milih potongan, intip dulu apa yang beneran sudah masuk ke *staging* dan apa yang masih ketinggalan:
+Setelah selesai memilih-milih potongan, biasakan mengecek kembali isi keranjang *staging* dengan dua perintah ini sebelum mengetik `git commit`:
 
 ```bash
-git diff --staged   # yang siap masuk ke commit sekarang
-git diff            # sisa editan yang belum di-stage
+git diff --staged   # melihat perubahan yang SUDAH siap masuk commit sekarang
+git diff            # melihat sisa perubahan yang BELUM di-stage
 ```
 
-## Perintah lain yang juga punya `-p`
+Dengan begitu, kamu yakin 100% tidak ada `console.log` atau kode eksperimen yang terbawa masuk ke *commit*.
 
-Bukan cuma `git add` yang punya mode *patch*. Empat perintah ini sama bergunanya:
+## 5. Perintah Git lain yang juga punya opsi `-p`
 
-- `git restore -p`: buang sebagian editan (misalnya sisa kode *debug*) dari *working tree*. Hati-hati, potongan yang kamu iyakan langsung hilang.
-- `git restore --staged -p`: keluarkan sebagian potongan yang tadi telanjur masuk ke *staging*.
-- `git stash push -p`: simpan potongan tertentu saja ke dalam *stash*.
-- `git commit -p`: pilih potongan lalu langsung buka editor pesan *commit* tanpa mampir ke `git add` dulu.
+Bukan hanya `git add`, empat perintah lain ini juga mendukung mode *patch* untuk memilih perubahan per potongan:
 
-## Tip tambahan
+- `git restore -p`: membuang sebagian perubahan saja (misalnya menghapus hanya baris `console.log` sisa *debugging*) dari folder kerjamu. **Hati-hati:** potongan yang kamu setujui dengan `y` di perintah ini langsung hilang permanen!
+- `git restore --staged -p`: mengeluarkan sebagian potongan yang tadi telanjur masuk ke *staging area*.
+- `git stash push -p`: menitipkan potongan tertentu saja ke laci sementara (*stash*), sementara potongan lainnya tetap kamu kerjakan.
+- `git commit -p`: memilih potongan lalu langsung membuka editor pesan *commit* tanpa perlu mengetik `git add` terlebih dahulu.
 
-Kalau capek harus menekan `Enter` tiap habis pencet `y` atau `n`, nyalakan mode satu tombol:
+## Tip tambahan biar lebih cepat
+
+Jika merasa pegal harus selalu menekan `Enter` setiap kali mengetik `y` atau `n`, nyalakan mode satu tombol (*single key*) di konfigurasi global:
 
 ```bash
 git config --global interactive.singleKey true

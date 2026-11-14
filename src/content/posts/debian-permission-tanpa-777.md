@@ -6,59 +6,78 @@ tags: ["debian", "linux", "keamanan", "pemula", "permission", "chmod"]
 description: "Perbaiki izin folder unggahan di Debian 13 tanpa chmod 777: telusuri pemilik, batasi akses proses aplikasi, lalu uji baca dan tulis."
 ---
 
-`chmod -R 777` pada direktori proyek memberi semua akun izin menulis kode dan data di dalamnya. Kalau fitur unggahan gagal dengan pesan `Permission denied`, cari akun yang menjalankan aplikasi dan direktori yang menolak akses. Ubah izin pada lokasi itu, bukan seluruh proyek.
+Pernah mengalami fitur upload foto di website tiba-tiba gagal dengan pesan `Permission denied`? Saat mencari solusi di internet, saran paling sering (dan paling berbahaya) yang muncul adalah menjalankan `chmod -R 777` ke seluruh folder proyek.
 
-Semua perintah di bawah dijalankan **di server** Debian 13 dengan akun admin yang punya `sudo`. Contohnya memakai aplikasi fiktif bernama `tokoku` di `/srv/tokoku`. Ganti nama, path, dan user dengan milikmu sendiri; jangan salin mentah-mentah kalau struktur servermu berbeda.
+**Jangan lakukan itu!** Menjalankan `chmod -R 777` ibarat membuka semua pintu lemari dan membiarkan siapa saja di server—termasuk akun layanan lain yang mungkin terinfeksi—bebas mengubah atau menghapus seluruh kode dan datamu.
 
-## Cara baca permission: file beda dengan folder
+Solusi yang benar sebenarnya sederhana: cari tahu **akun mana** yang menjalankan aplikasimu dan **folder mana** yang menolak akses, lalu berikan izin menulis hanya pada folder tempat menyimpan unggahan tersebut saja.
 
-`ls -l` menampilkan tiga kelompok izin: pemilik (*owner*), grup, dan yang lain (*others*), masing-masing `r` (baca), `w` (tulis), `x` (eksekusi).
+Semua perintah di bawah dijalankan **di server** Debian 13 memakai akun admin yang punya `sudo`. Contohnya memakai aplikasi fiktif bernama `tokoku` di `/srv/tokoku`. Ganti nama aplikasi, path folder, dan nama akun sesuai dengan yang ada di servermu.
+
+## 1. Cara membaca permission: file berbeda dengan folder
+
+Saat kamu mengetik `ls -l`, Linux menampilkan izin akses dalam format 10 karakter di kolom paling kiri:
 
 ```text
 -rw-r----- 1 root tokoku 214 Nov 11 20:10 app.env
 drwxr-x--- 2 tokoku www-data 4096 Nov 11 20:12 uploads
 ```
 
-Artinya berbeda untuk file dan folder:
+Huruf paling depan menandakan jenisnya (`-` untuk file biasa, `d` untuk *directory*/folder). Sembilan karakter berikutnya dibagi menjadi **tiga kelompok** (masing-masing 3 huruf):
+1. **Pemilik (*owner*)** — 3 huruf pertama (`rw-` atau `rwx`).
+2. **Grup (*group*)** — 3 huruf tengah (`r--` atau `r-x`).
+3. **Pengguna lain (*others*)** — 3 huruf terakhir (`---`).
 
-| Izin | Pada file | Pada folder |
+Arti huruf `r`, `w`, dan `x` ternyata **berbeda** antara file dan folder:
+
+| Huruf | Pada file | Pada folder |
 |---|---|---|
-| `r` | isi file boleh dibaca | nama isi folder boleh didaftar (`ls`) |
-| `w` | isi file boleh diubah | boleh membuat, menghapus, dan mengganti nama entri di dalamnya |
-| `x` | boleh dijalankan sebagai program | boleh mencari entri dan melintas ke path di dalamnya |
+| `r` (read) | Isi file boleh dibaca | Daftar nama file di dalam folder boleh dilihat (`ls`) |
+| `w` (write) | Isi file boleh diubah/ditulis | Boleh membuat, menghapus, atau mengganti nama file di dalam folder ini |
+| `x` (execute) | File boleh dijalankan sebagai program | Boleh **melintas masuk** (`cd`) ke dalam folder dan mengakses file di dalamnya |
 
-Poin terakhir sering membuat pemula bingung. Untuk membuka `/srv/tokoku/uploads/foto.jpg`, sebuah user butuh `x` di **setiap folder** sepanjang jalan (`/srv`, `/srv/tokoku`, `/srv/tokoku/uploads`) dan `r` di file itu. Satu folder induk tanpa `x` untuk user tersebut sudah cukup menolak seluruh jalur, sekalipun file-nya sendiri terbuka.
+Poin terakhir ini yang paling sering membuat pemula bingung. Bayangkan sebuah gedung dengan beberapa lorong. Untuk membuka `/srv/tokoku/uploads/foto.jpg`, sebuah akun wajib punya izin `x` ("boleh lewat lorong") di **setiap folder** sepanjang jalan: `/srv`, `/srv/tokoku`, dan `/srv/tokoku/uploads`, baru kemudian izin `r` pada file `foto.jpg`. Jika satu folder di tengah jalan tidak memberi izin `x`, seluruh akses ke dalamnya akan langsung ditolak walaupun izin file akhirnya terbuka lebar!
 
-Pada direktori, membuat atau menghapus entri biasanya membutuhkan `w` bersama `x`. Izin direktori induk dapat memungkinkan penghapusan berkas walau isi berkasnya tidak boleh ditulis; izin `r` berkas bukan perlindungan dari penghapusan.
+Perhatikan juga soal penghapusan: di Linux, izin menghapus sebuah file ditentukan oleh izin **`w` + `x` pada folder induknya**, bukan pada file-nya sendiri. Jadi meski sebuah file hanya punya izin baca (`r`), seseorang yang punya izin `wx` pada folder induknya tetap bisa menghapus file itu.
 
-Angka mode adalah jumlah dari `r`=4, `w`=2, `x`=1 per kelompok. Tiga digit berurutan: pemilik, grup, others. Yang dipakai sehari-hari:
+### Dari mana datangnya angka seperti `644` atau `750`?
 
-| Mode | Arti | Cocok untuk |
+Setiap huruf punya bobot angka: **`r` = 4**, **`w` = 2**, **`x` = 1**, dan tidak ada izin (`-`) = **0**. Kita tinggal menjumlahkan bobot per kelompok (Pemilik, Grup, Others):
+- `rwx` = 4 + 2 + 1 = **7**
+- `rw-` = 4 + 2 + 0 = **6**
+- `r-x` = 4 + 0 + 1 = **5**
+- `r--` = 4 + 0 + 0 = **4**
+
+Inilah angka mode yang paling sering dipakai sehari-hari:
+
+| Mode | Arti | Cocok dipakai untuk |
 |---|---|---|
-| `644` | pemilik baca-tulis, lainnya baca | file kode atau aset publik |
-| `640` | pemilik baca-tulis, grup baca, lainnya tidak | berkas konfigurasi yang dibaca satu grup |
-| `600` | hanya pemilik | kunci pribadi, kata sandi |
-| `755` | pemilik penuh, lainnya baca dan lintas | folder kode atau folder publik |
-| `750` | pemilik penuh, grup baca dan lintas, lainnya nol | folder yang dibatasi ke satu grup |
+| `644` | Pemilik baca-tulis (`6`), grup & lainnya cuma baca (`4`) | File kode program atau aset web publik |
+| `640` | Pemilik baca-tulis (`6`), grup baca (`4`), lainnya tidak boleh sama sekali (`0`) | File konfigurasi/rahasia yang dibaca oleh satu grup |
+| `600` | Hanya pemilik yang boleh baca-tulis (`6`), semua lainnya nol | Kunci SSH privat, file password |
+| `755` | Pemilik penuh (`7`), grup & lainnya boleh melihat daftar & melintas (`5`) | Folder kode atau folder publik |
+| `750` | Pemilik penuh (`7`), grup boleh melihat & melintas (`5`), lainnya nol | Folder privat yang hanya dibuka untuk satu grup |
 
-## Cari user runtime yang sebenarnya
+## 2. Cari tahu akun mana yang menjalankan aplikasimu
 
-Jangan berasumsi aplikasimu berjalan sebagai `www-data`. Itu bawaan umum untuk Nginx dan pool PHP-FPM bawaan, tetapi aplikasi yang dijalankan systemd bisa memakai akun lain, dan setiap pool PHP-FPM punya `user =` sendiri. Izin yang kamu setel untuk `www-data` tidak menolong kalau proses sebenarnya jalan sebagai `tokoku`.
+Jangan langsung mengira semua aplikasi web berjalan dengan akun `www-data`. Memang `www-data` adalah akun bawaan Nginx atau PHP-FPM standar, tetapi aplikasi yang dijalankan lewat `systemd` (seperti Node.js, Python, atau Go) sering memakai akun khusus lain, dan setiap *pool* PHP-FPM pun bisa memiliki `user =` sendiri.
 
-Cek dari sumbernya:
+Mengubah izin untuk `www-data` tidak akan ada gunanya jika aplikasimu ternyata berjalan sebagai akun `tokoku`. Cek langsung dari sumbernya:
 
 ```bash
-# di server: aplikasi yang dijalankan systemd
+# di server: cek akun untuk layanan systemd
 systemctl show -p User -p Group tokoku.service
-ps -o user=,group=,pid=,cmd= -C node          # ganti node dengan nama prosesmu
 
-# di server: PHP-FPM, user ada di berkas pool
+# di server: cek akun dari proses yang sedang berjalan (ganti node dengan nama prosesmu)
+ps -o user=,group=,pid=,cmd= -C node
+
+# di server: cek akun PHP-FPM di berkas pool-nya
 sudo grep -E '^(user|group)\s*=' /etc/php/*/fpm/pool.d/*.conf
 ```
 
-Kalau `User=` kosong di `systemctl show`, unit itu jalan sebagai root. Itu temuan tersendiri: jalankan aplikasi web sebagai root sebaiknya dihindari, karena satu celah di aplikasi langsung menjadi akses root.
+Jika `User=` pada hasil `systemctl show` tampak kosong, artinya aplikasi tersebut sedang berjalan sebagai **`root`**. Ini temuan keamanan tersendiri: menjalankan aplikasi web sebagai `root` sangat berisiko, karena satu saja celah keamanan di kode aplikasi langsung memberi penyerang kendali penuh atas seluruh server.
 
-Kalau belum ada akun khusus, buat akun sistem tanpa login untuk aplikasimu:
+Jika belum ada akun khusus, buat akun sistem biasa (yang tidak bisa dipakai login SSH) khusus untuk menjalankan aplikasi ini:
 
 ```bash
 # di server
@@ -66,66 +85,67 @@ sudo adduser --system --group --no-create-home --home /srv/tokoku tokoku
 id tokoku
 ```
 
-Lalu pastikan unit systemd-nya memakai akun itu (`User=tokoku` dan `Group=tokoku` di bagian `[Service]`). Dari sini panduan memakai `tokoku` sebagai user runtime. Kalau punyamu `www-data`, ganti saja.
+Setelah itu, pastikan unit `systemd`-nya memakai akun tersebut dengan menambahkan `User=tokoku` dan `Group=tokoku` di bawah bagian `[Service]`. Mulai bagian selanjutnya, kita memakai `tokoku` sebagai akun yang menjalankan aplikasi (ganti dengan `www-data` atau nama akun punyamu bila berbeda).
 
-## Pola yang aman: kode hanya-baca, uploads boleh ditulis
+## 3. Pola aman: kode hanya-baca, folder `uploads` boleh ditulis
 
-Rancangannya:
+Prinsip keamanan yang rapi memisahkan antara **kode aplikasi**, **folder unggahan pengguna**, dan **file rahasia**:
+- **Kode aplikasi** dimiliki oleh `root`: akun aplikasi (`tokoku`) boleh membacanya, tetapi tidak boleh mengubahnya. (Ini membatasi agar proses aplikasi tidak bisa diam-diam memodifikasi file kode di disk, meski tentu tidak melindungi dari eksploitasi di memori atau penyalahgunaan akses data aplikasi).
+- **Hanya folder `uploads`** yang boleh ditulisi oleh akun aplikasi (`tokoku`).
+- **File rahasia** (password database, API key, `.env`) ditaruh di luar folder yang dilayani oleh web server.
 
-- Kode aplikasi dimiliki `root`, bisa dibaca user runtime, tidak bisa ditulisnya. Ini membatasi perubahan kode di disk oleh proses aplikasi, tetapi tidak mencegah penyerang menjalankan kode di memori atau menyalahgunakan akses data aplikasi.
-- Hanya folder `uploads` yang dimiliki dan bisa ditulis user runtime.
-- Rahasia (kata sandi basis data, API key) tidak berada di bawah folder yang dilayani web server.
-
-Susunan contohnya:
+Susunan idealnya terlihat seperti ini:
 
 ```text
-/srv/tokoku/app/        kode, root:root, folder 755, file 644
-/srv/tokoku/uploads/    tokoku:www-data, 2750 (ditulis aplikasi, dibaca Nginx)
-/etc/tokoku/app.env     root:tokoku, 640 (rahasia, di luar root web)
+/srv/tokoku/app/        kode, milik root:root, folder 755, file 644
+/srv/tokoku/uploads/    milik tokoku:www-data, mode 2750 (ditulis aplikasi, dibaca Nginx)
+/etc/tokoku/app.env     milik root:tokoku, mode 640 (rahasia, di luar root web)
 ```
 
-### Lihat dulu di mana izinnya putus
+### Langkah A: Lacak di titik mana izin terputus
 
-`namei -l` memecah path menjadi tiap komponen lengkap dengan owner, grup, dan mode:
+Daripada menebak-nebak, gunakan perintah `namei -l` untuk memecah jalur folder menjadi satu per satu dan melihat siapa pemilik serta izin di setiap langkahnya:
 
 ```bash
 # di server
 namei -l /srv/tokoku/uploads/foto.jpg
 ```
 
-Keluarannya kira-kira seperti ini (contoh ilustrasi, bukan hasil dari servermu):
+Contoh ilustrasinya (bukan hasil asli servermu):
 
 ```text
 f: /srv/tokoku/uploads/foto.jpg
-dr-xr-xr-x root   root   /
-drwxr-xr-x root   root   srv
-drwx------ root   root   tokoku
+dr-xr-xr-x root   root     /
+drwxr-xr-x root   root     srv
+drwx------ root   root     tokoku
 drwxr-x--- tokoku www-data uploads
 ```
 
-Baris `tokoku` di contoh itu `drwx------`: others tidak punya `x`, jadi `www-data` mentok di sana walaupun `uploads` terbuka. Baca dari atas ke bawah dan cari komponen pertama yang tidak memberi `x` (atau `r` di file akhir) kepada user yang gagal.
+Lihat baris `tokoku` di tengah itu: izinnya `drwx------`. Artinya hanya `root` yang boleh lewat; akun `www-data` atau `tokoku` langsung mentok di pintu `tokoku` meskipun folder `uploads` di bawahnya sudah memberi izin. Baca dari atas ke bawah untuk menemukan gerbang pertama yang menghalangi jalan.
 
-Cari kode yang bisa ditulis akun runtime, termasuk izin lewat grup dan ACL:
+Cek juga apakah ada file di folder kode yang secara tidak sengaja bisa ditulisi oleh akun aplikasi:
 
 ```bash
 # di server
 sudo -u tokoku find /srv/tokoku/app -writable -print
 ```
 
-Periksa setiap hasil dan pesan penolakan akses. Hasil kosong hanya berguna jika seluruh direktori berhasil ditelusuri. Jangan jalankan `chown -R` atau `chmod -R` pada seluruh `/srv/tokoku`.
+Periksa hasil yang muncul maupun pesan *permission denied* jika ada (hasil kosong baru meyakinkan kalau seluruh folder memang bisa ditelusuri tanpa error). Sekali lagi: jangan pernah menjalankan `chown -R` atau `chmod -R` membabi-buta ke seluruh `/srv/tokoku`.
 
-### Ubah hanya path yang perlu
+### Langkah B: Perbaiki hanya folder dan file yang bermasalah
 
-Folder uploads: dimiliki user runtime, grup `www-data` supaya Nginx bisa membaca, bit setgid (`2` di depan) supaya file baru mewarisi grup itu.
+Untuk folder `uploads`, kita atur agar dimiliki oleh `tokoku`, ber-grup `www-data` (supaya Nginx bisa membacanya), dan memakai angka **`2`** di depan (`2750`):
 
 ```bash
 # di server
 sudo install -d -o tokoku -g www-data -m 2750 /srv/tokoku/uploads
 ```
 
-`install -d` membuat folder kalau belum ada, atau menyetel owner dan mode kalau sudah ada, tanpa menyentuh isi di dalamnya. File lama di dalam `uploads` tidak berubah. Kalau memang perlu diperbaiki, daftar dulu lalu perbaiki yang salah saja:
+Apa arti angka `2` pada `2750`? Itu adalah bit **setgid**. Fungsinya sangat praktis: setiap file baru yang dibuat di dalam folder `uploads` akan otomatis mewarisi grup `www-data` milik foldernya, bukan grup pribadi `tokoku`.
 
-Setgid hanya mengatur pewarisan grup; aplikasi juga harus membuat berkas dengan izin baca grup, misalnya mode `640` dengan umask `0027`. Periksa satu unggahan baru. Jika memakai Nginx untuk menyajikan unggahan, jangan mengeksekusi berkas unggahan sebagai PHP atau skrip lain.
+Perintah `install -d` akan membuat folder jika belum ada, atau memperbarui pemilik dan izinnya jika folder sudah ada, tanpa mengubah isi file-file lama di dalamnya. Catatan tambahan: `setgid` hanya mengatur pewarisan grup; aplikasi itu sendiri tetap harus membuat file baru dengan izin baca untuk grup (misalnya mode `640` lewat `umask 0027`). Periksa satu unggahan baru untuk memastikannya—dan jika Nginx melayani folder `uploads` ini, pastikan Nginx dikonfigurasi agar tidak pernah mengeksekusi file unggahan sebagai skrip PHP atau program lain.
+
+Jika ada file lama di `uploads` yang kepemilikan atau izinnya terlanjur keliru, cari dulu yang salah saja sebelum memperbaikinya:
 
 ```bash
 # di server
@@ -133,14 +153,14 @@ sudo find /srv/tokoku/uploads ! -user tokoku -print
 sudo find /srv/tokoku/uploads -type f ! -perm -g=r -print
 ```
 
-Folder induk yang menghalangi (hasil `namei`), dengan izin seminimal mungkin:
+Jika `namei` tadi menunjukkan ada folder induk (seperti `/srv/tokoku`) yang menghalangi jalan karena tidak ada izin `x` untuk `others`, cukup tambahkan izin melintas (`o+x`) tanpa memberi izin melihat daftar file (`r`) atau menulis (`w`):
 
 ```bash
-# di server: others hanya boleh melintas, tidak boleh mendaftar isinya
+# di server: others hanya boleh melintas, tidak boleh mendaftar isi foldernya
 sudo chmod o+x /srv/tokoku
 ```
 
-Kode, hanya untuk komponen yang ternyata salah dari hasil `find` di atas, contoh satu file:
+Dan jika hasil `find` di kode aplikasi menemukan file yang izinnya salah, perbaiki satu per satu secara spesifik (contoh untuk satu file):
 
 ```bash
 # di server
@@ -148,28 +168,30 @@ sudo chown root:root /srv/tokoku/app/server.js
 sudo chmod 644 /srv/tokoku/app/server.js
 ```
 
-### Buktikan dengan akun yang sama dengan aplikasi
+### Langkah C: Uji langsung memakai akun aplikasi
 
-Jangan mengetes dengan akun admin: ia bisa `sudo` dan lolos di tempat yang membuat aplikasi gagal. Jalankan tes sebagai user runtime:
+Jangan mengetes memakai akun `admin` atau `root`—karena mereka punya hak tinggi dan bisa lolos di tempat yang sebenarnya membuat akun aplikasi gagal. Simulasikan langsung memakai akun aplikasinya (`sudo -u tokoku`):
 
 ```bash
-# di server: harus berhasil (baca kode, tulis ke uploads)
+# di server: harus berhasil (bisa baca kode, bisa tulis ke uploads)
 sudo -u tokoku test -r /srv/tokoku/app/server.js && echo "kode terbaca"
 sudo -u tokoku touch /srv/tokoku/uploads/.probe && echo "uploads bisa ditulis"
 sudo -u tokoku rm /srv/tokoku/uploads/.probe
 
-# di server: harus gagal (kode tidak boleh bisa ditulis)
+# di server: harus gagal (kode tidak boleh bisa ditulis oleh aplikasi!)
 sudo -u tokoku test -w /srv/tokoku/app/server.js || echo "benar: kode tidak bisa ditulis"
 
-# di server: pembaca web server harus bisa melihat file di uploads
+# di server: web server harus bisa membaca file di uploads
 sudo -u www-data test -r /srv/tokoku/uploads/foto.jpg && echo "www-data bisa baca"
 ```
 
-Tes terakhir hanya relevan kalau Nginx langsung menyajikan folder `uploads`. Kalau semua baris sesuai harapan, coba unggah dari aplikasinya sendiri.
+Tes terakhir hanya perlu jika Nginx memang melayani folder `uploads` secara langsung. Jika semua hasil tes sudah sesuai harapan, coba lakukan upload langsung dari aplikasimu.
 
-## Rahasia jangan di bawah root web
+## 4. Pindahkan rahasia (`.env`) ke luar folder web
 
-Berkas seperti `.env` yang ditaruh di dalam folder yang dilayani web server bisa terunduh lewat URL kalau konfigurasi server meleset sedikit saja. Pindahkan keluar dari root web:
+Jangan pernah menyimpan file `.env` berisi password database atau API key di dalam folder publik yang dilayani oleh web server. Jika konfigurasi Nginx meleset sedikit saja, file `.env` bisa diunduh oleh siapa pun lewat browser.
+
+Pindahkan keluar ke folder konfigurasi sistem, misalnya `/etc/tokoku/app.env`:
 
 ```bash
 # di server
@@ -178,55 +200,57 @@ sudo test -e /etc/tokoku/app.env || sudo install -o root -g tokoku -m 640 /dev/n
 sudoedit /etc/tokoku/app.env
 ```
 
-Perintah bersyarat itu hanya membuat berkas kosong jika belum ada; jangan menimpa berkas rahasia yang sudah berisi data. Kalau sudah ada, periksa pemilik dan izinnya lalu sesuaikan dengan `chown root:tokoku` dan `chmod 640` pada berkas tersebut.
+Perintah `test -e ... || ...` di baris kedua memastikan kita hanya membuat file kosong jika file-nya memang belum ada—supaya tidak sengaja menimpa file rahasia yang sudah berisi data. Jika file sudah ada, cek dan rapikan izinnya ke `chown root:tokoku` serta `chmod 640`.
 
-Di unit systemd, arahkan dengan `EnvironmentFile=/etc/tokoku/app.env`. Menurut `systemd.exec(5)`, file itu dibaca oleh manajer systemd, bukan oleh proses aplikasinya, jadi untuk pola ini `root:root` dengan mode `600` juga cukup. Pakai `root:tokoku 640` kalau aplikasimu membaca berkas itu sendiri.
+Di dalam unit `systemd`, muat file tersebut dengan `EnvironmentFile=/etc/tokoku/app.env`. Menurut manual `systemd.exec(5)`, file ini dibaca oleh `systemd` sendiri (bukan oleh proses aplikasinya), jadi mode `root:root` `600` sudah cukup; gunakan `root:tokoku` `640` apabila proses aplikasimu yang membuka file itu langsung.
 
-Kalau rahasia sempat berada di folder publik atau masuk repositori, memindahkannya belum cukup. Anggap sudah bocor dan ganti nilainya (kata sandi basis data, token).
+> **Penting:** Jika file rahasia seperti `.env` pernah terlanjur berada di folder publik atau sempat terunggah ke repositori Git, sekadar memindahkannya tidaklah cukup. Anggap kata sandi dan token di dalamnya sudah bocor, lalu **segera ganti** semua kredensial tersebut!
 
-## Kalau mode sudah benar tapi tetap ditolak
+## 5. Bagaimana kalau mode sudah benar tapi tetap ditolak?
 
-Setelah `namei` dan tes `sudo -u` menunjukkan izin Unix beres, cari lapisan lain:
-
-Kalau `getfacl` belum tersedia, pasang paket `acl` dengan `sudo apt install acl`.
+Terkadang hasil `namei` dan tes `sudo -u` sudah benar semua, tetapi aplikasi tetap mendapat `Permission denied`. Di Linux, ada lapisan pengaman lain di luar izin baca-tulis biasa. Periksa empat hal ini (jika `getfacl` belum ada, pasang dulu dengan `sudo apt install acl`):
 
 ```bash
-# di server: ACL tambahan? Tanda + di ujung mode, atau getfacl
+# di server: 1. Cek ACL tambahan (lihat apakah ada tanda '+' di ujung izin, atau cek getfacl)
 ls -ld /srv/tokoku/uploads
 getfacl /srv/tokoku/uploads
 
-# di server: filesystem dipasang read-only atau noexec?
+# di server: 2. Cek apakah partisi disk terpasang sebagai read-only atau noexec
 findmnt -T /srv/tokoku/uploads
 
-# di server: atribut khusus (misalnya immutable, huruf i)
+# di server: 3. Cek atribut khusus file/folder (misalnya 'i' = immutable / tidak bisa diubah siapa pun)
 lsattr -d /srv/tokoku/uploads
 
-# di server: pembatas bawaan unit systemd
+# di server: 4. Cek pembatasan bawaan di file layanan systemd
 systemctl cat tokoku.service
 ```
 
-Di keluaran `systemctl cat`, cari `ProtectSystem=`, `ProtectHome=`, `ReadOnlyPaths=`, dan `ReadWritePaths=`. Dengan `ProtectSystem=strict`, seluruh hierarki file menjadi hanya-baca bagi layanan, kecuali path yang disebut di `ReadWritePaths=`. Kamu bisa saja melihat mode `750` dan owner benar, tetapi unit tetap tidak bisa menulis karena path itu belum dibuka:
+Penyebab paling sering nomor 4 adalah aturan keamanan di file unit `systemd`. Cari baris `ProtectSystem=`, `ProtectHome=`, `ReadOnlyPaths=`, dan `ReadWritePaths=`. Jika layanan memakai `ProtectSystem=strict`, seluruh sistem file otomatis dijadikan hanya-baca bagi layanan itu—kecuali folder yang kamu daftarkan di `ReadWritePaths=`. Jadi walaupun mode foldernya `750` dan pemiliknya sudah benar, `systemd` tetap memblokir proses penulisan!
+
+Cara membukanya dengan aman lewat *override* `systemd`:
 
 ```bash
 # di server
 sudo systemctl edit tokoku.service
 ```
 
+Tambahkan baris berikut:
+
 ```ini
 [Service]
 ReadWritePaths=/srv/tokoku/uploads
 ```
 
-Simpan, lalu `sudo systemctl restart tokoku.service` dan ulangi unggahan. Isi lain dari `ProtectSystem` hanya kamu ubah kalau sudah tahu aplikasimu butuh tulis ke mana lagi. Kalau AppArmor aktif, pesan penolakannya muncul di `sudo journalctl -k | grep -i apparmor`.
+Simpan, lalu restart layanannya (`sudo systemctl restart tokoku.service`) dan ulangi tes unggahan. Pengaturan `ProtectSystem` lainnya hanya ubah kalau kamu benar-benar tahu direktori lain mana yang wajib ditulisi aplikasi. Selain itu, jika AppArmor aktif di Debian, catatan penolakannya bisa dicek lewat `sudo journalctl -k | grep -i apparmor`.
 
-Setelah semua bekerja, tutup dengan satu pemeriksaan terakhir: tidak ada yang bisa ditulis siapa saja.
+Setelah semuanya berjalan normal, tutup dengan satu pengecekan akhir untuk memastikan tidak ada satu pun file atau folder di bawah `/srv/tokoku` yang bisa ditulisi oleh sembarang orang (*others*):
 
 ```bash
 # di server
 sudo find /srv/tokoku -perm -o+w ! -type l -print
 ```
 
-Hasil kosong berarti tidak ada file atau folder di bawah path itu yang dapat ditulis oleh others.
+Jika perintah tersebut tidak mencetak apa pun (hasil kosong), berarti izinnya sudah bersih dan aman.
 
 ## Referensi
 
@@ -239,11 +263,11 @@ Hasil kosong berarti tidak ada file atau folder di bawah path itu yang dapat dit
 
 ## Seri keamanan server Debian
 
-1. [Langkah awal mengamankan server Debian 13](/posts/debian-server-keamanan-awal/)
-2. [Login SSH pakai key di Debian 13](/posts/debian-ssh-key/)
-3. [Firewall sederhana dengan UFW di Debian 13](/posts/debian-firewall-ufw/)
-4. [Cek port yang terbuka di server Debian 13](/posts/debian-cek-port/)
-5. [Update keamanan otomatis di Debian 13 dengan unattended-upgrades](/posts/debian-unattended-upgrades/)
-6. **Permission file di Debian 13 tanpa chmod 777**
-7. [Fail2ban untuk SSH di Debian 13](/posts/debian-fail2ban-ssh/)
-8. [Backup dan restore server Debian 13 dengan restic](/posts/debian-backup-restore/)
+1. [Mengamankan VPS Debian 13 baru](/posts/debian-server-keamanan-awal/)
+2. [Login SSH pakai kunci Ed25519](/posts/debian-ssh-key/)
+3. [Firewall UFW tanpa terkunci](/posts/debian-firewall-ufw/)
+4. [Cek port yang terbuka dengan ss dan nmap](/posts/debian-cek-port/)
+5. [Update keamanan otomatis dengan unattended-upgrades](/posts/debian-unattended-upgrades/)
+6. **Permission berkas tanpa chmod 777 (artikel ini)**
+7. [Fail2ban untuk SSH](/posts/debian-fail2ban-ssh/)
+8. [Backup dan uji restore](/posts/debian-backup-restore/)

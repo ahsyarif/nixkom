@@ -6,59 +6,67 @@ tags: ["git", "tips", "pemula"]
 description: "Sejak Git 2.23, tugas git checkout dipecah jadi git switch khusus urusan branch dan git restore khusus urusan berkas."
 ---
 
-Buat yang baru belajar Git, `git checkout` itu perintah paling membingungkan karena punya dua pekerjaan yang sama sekali tidak nyambung: pindah *branch* sekaligus menimpa isi berkas. Salah ketik sedikit saja, kamu bisa tidak sengaja menghapus editan berkas padahal niatnya cuma mau pindah *branch*. Sejak Git 2.23, pengembang Git memecah tugas itu menjadi dua perintah yang jelas batasannya: `git switch` khusus mengurus *branch*, dan `git restore` khusus mengurus berkas.
+Bagi pemula yang baru belajar Git, `git checkout` adalah salah satu perintah yang paling sering membuat bingung. Kenapa? Karena satu kata `checkout` dipakai untuk dua pekerjaan yang sama sekali tidak nyambung: **pindah *branch*** sekaligus **membuang/menimpa isi berkas**!
 
-## Tabel pengganti `git checkout`
+Salah mengetik satu tanda baca saja, kamu bisa tidak sengaja menghapus editan berkas padahal niat awalnya hanya ingin berpindah *branch*.
 
-| Tugas | Perintah lama (`checkout`) | Perintah baru (`switch` / `restore`) |
+Karena masalah itulah, sejak Git versi 2.23, pengembang Git memisahkan tugas `checkout` menjadi dua perintah yang jauh lebih jelas batasannya:
+- **`git switch`**: khusus mengurus **pindah atau membuat *branch***.
+- **`git restore`**: khusus mengurus **mengembalikan isi berkas**.
+
+## 1. Contekan pengganti `git checkout`
+
+Jika di tutorial lama kamu masih melihat `git checkout`, inilah padanan modern yang lebih aman:
+
+| Tugas yang ingin dilakukan | Perintah lama (`checkout`) | Perintah baru (`switch` / `restore`) |
 |---|---|---|
 | Pindah ke *branch* lain | `git checkout main` | `git switch main` |
-| Bikin *branch* baru lalu pindah ke situ | `git checkout -b feat/login` | `git switch -c feat/login` |
-| Balik ke *branch* sebelumnya | `git checkout -` | `git switch -` |
+| Bikin *branch* baru lalu langsung pindah ke situ | `git checkout -b feat/login` | `git switch -c feat/login` |
+| Balik cepat ke *branch* sebelumnya | `git checkout -` | `git switch -` |
 | Buang editan lokal di satu berkas | `git checkout -- App.tsx` | `git restore App.tsx` |
 | Ambil isi berkas dari *branch* atau *commit* lain | `git checkout main -- App.tsx` | `git restore -s main App.tsx` |
 
-## Kenapa `git checkout` rawan bikin celaka?
+## 2. Kenapa `git checkout` rawan membuat celaka?
 
-Bayangkan kamu punya *branch* bernama `config` sekaligus berkas bernama `config` di folder yang sama. Waktu kamu mengetik `git checkout config`, Git harus menebak apakah kamu mau pindah ke *branch* `config` atau membuang perubahan di berkas `config`. Lebih parah lagi kalau nama *branch* yang kamu ketik ternyata salah eja tapi kebetulan cocok dengan nama folder: isi folder itu langsung ditimpa ulang tanpa peringatan.
+Bayangkan di folder proyekmu kamu punya *branch* bernama `config` sekaligus punya berkas atau folder bernama `config`. Saat kamu mengetik `git checkout config`, Git harus menebak-nebak apakah kamu mau pindah ke *branch* `config` atau mau membuang perubahan di berkas `config`. Lebih bahaya lagi kalau nama *branch* yang kamu ketik ternyata salah eja, tetapi kebetulan namanya sama dengan nama sebuah folder—isi folder itu bisa langsung ditimpa ulang tanpa peringatan!
 
 Dengan memisahkan perintahnya:
-- `git switch` **tidak akan pernah** menimpa satu berkas individual. Kalau nama yang kamu ketik bukan nama *branch*, perintahnya langsung menolak jalan.
-- `git restore` **tidak akan pernah** memindahkan posisi *branch*-mu.
+- `git switch` **tidak akan pernah** menimpa satu berkas. Jika nama yang kamu ketik bukan nama *branch*, perintahnya langsung berhenti dengan pesan error yang aman.
+- `git restore` **tidak akan pernah** memindahkanmu ke *branch* lain.
 
-## Pindah dan bikin branch dengan `git switch`
+## 3. Cara pindah dan membuat *branch* dengan `git switch`
 
-Untuk berpindah antar-*branch* sehari-hari:
+Untuk aktivitas berpindah antar-*branch* sehari-hari:
 
 ```bash
 git switch main
-git switch -c feat/pembayaran   # -c (--create) buat bikin branch baru
-git switch -                    # loncat balik ke branch sebelumnya (mirip cd -)
+git switch -c feat/pembayaran   # -c (--create) untuk membuat branch baru lalu masuk ke sana
+git switch -                    # loncat kembali ke branch sebelumnya (mirip perintah cd -)
 ```
 
-Kalau kamu mau membuat *branch* baru dari titik awal tertentu (misalnya langsung dari `origin/main` tanpa harus pindah ke `main` dulu), sebutkan titik awalnya di ujung:
+Jika kamu ingin membuat *branch* baru yang langsung berangkat dari kondisi server terbaru (`origin/main`) tanpa harus repot pindah ke `main` lokal dulu, tambahkan titik awalnya di belakang perintah:
 
 ```bash
 git fetch origin
 git switch -c hotfix/kupon origin/main
 ```
 
-## Mengembalikan isi berkas dengan `git restore`
+## 4. Cara mengembalikan isi berkas dengan `git restore`
 
-Kalau mau membatalkan editan di satu berkas supaya kembali seperti *commit* terakhir (`HEAD`):
+Jika kamu ingin membatalkan editan pada satu berkas agar kembali persis seperti saat *commit* terakhir (`HEAD`):
 
 ```bash
 git restore src/components/Navbar.tsx
 ```
 
-Kalau mau mengambil versi berkas `Navbar.tsx` dari *branch* lain atau dari tiga *commit* sebelumnya, gunakan opsi `-s` (`--source`):
+Jika kamu ingin mengambil versi berkas `Navbar.tsx` dari *branch* lain (misalnya `main`) atau dari tiga *commit* sebelumnya (`HEAD~3`), tambahkan opsi `-s` (`--source`, artinya sumber versi):
 
 ```bash
 git restore -s main src/components/Navbar.tsx
 git restore -s HEAD~3 src/components/Navbar.tsx
 ```
 
-Berkas `Navbar.tsx` di folder kerjamu langsung berubah mengikuti versi sumber yang kamu tunjuk, siap untuk kamu periksa lewat `git diff` sebelum di-*commit*.
+Berkas `Navbar.tsx` di folder kerjamu langsung berubah mengikuti versi sumber yang kamu pilih, sehingga kamu bisa mengecek perbedaannya memakai `git diff` sebelum memasukkannya ke *commit* baru.
 
 ## Seri tips Git
 

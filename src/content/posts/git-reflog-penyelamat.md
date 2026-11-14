@@ -6,17 +6,19 @@ tags: ["git", "tips", "pemula"]
 description: "Selama sudah pernah di-commit, kode yang hilang gara-gara git reset --hard atau git branch -D masih bisa ditarik balik lewat git reflog."
 ---
 
-Pernah nggak sengaja menjalankan `git reset --hard HEAD~3` atau menghapus *branch* pakai `git branch -D`, terus lemas karena kerjaan seharian hilang dari `git log`? Tenang dulu. Selama perubahan itu **sudah pernah di-*commit*** di laptopmu, Git sebenarnya tidak langsung menghapus datanya dari diska. Ada buku catatan lokal bernama `reflog` (*reference logs*) yang merekam setiap perpindahan posisi `HEAD` secara diam-diam.
+Pernah merasa jantung mau copot karena tidak sengaja menjalankan `git reset --hard HEAD~3` atau menghapus *branch* memakai `git branch -D`, lalu saat mengecek `git log` kerjaan seharian tampak lenyap tak berbekas?
 
-## Cara mencari commit yang hilang
+Tarik napas dulu—jangan buru-buru pasrah! Selama kode tersebut **sudah pernah di-*commit*** di laptopmu, Git sebenarnya belum langsung membuang datanya dari penyimpanan. Di balik layar, Git punya buku catatan harian bernama **`reflog`** (*reference logs*) yang diam-diam mencatat setiap kali posisi `HEAD` (penunjuk posisimu saat ini) berpindah tempat.
 
-Ketik perintah ini di terminal:
+## 1. Mencari jejak *commit* yang "hilang"
+
+Buka terminal di dalam folder proyekmu dan jalankan:
 
 ```bash
 git reflog
 ```
 
-Git bakal menampilkan daftar gerakan terakhir yang kamu lakukan di repo lokal, lengkap dengan kode *hash* di kolom paling kiri:
+Git akan menampilkan daftar urutan langkah terbaru yang kamu lakukan di repo lokalmu, lengkap dengan kode ID unik (*hash*) di kolom paling kiri:
 
 ```text
 c8204ab (HEAD -> main) HEAD@{0}: reset: moving to HEAD~3
@@ -25,32 +27,37 @@ a4f81c2 HEAD@{1}: commit: feat: tambah validasi kupon diskon
 31d09fa HEAD@{3}: checkout: moving from main to feat/diskon
 ```
 
-Lihat baris `HEAD@{0}`: itu catatan waktu kamu salah menjalankan `reset`. Satu baris tepat di bawahnya (`HEAD@{1}` dengan *hash* `a4f81c2`) adalah posisi terakhir sebelum bencana terjadi.
+Cara membacanya dari atas ke bawah (dari kejadian paling baru ke yang lebih lama):
+- Baris `HEAD@{0}` adalah catatan saat kamu salah menjalankan `reset` tadi.
+- Tepat satu baris di bawahnya (`HEAD@{1}` dengan *hash* `a4f81c2`) adalah posisi aman terakhir **sebelum kesalahan terjadi**!
 
-## 1. Mengembalikan commit yang terhapus karena `reset --hard`
+## 2. Mengembalikan *commit* yang hilang karena `reset --hard`
 
-Begitu kamu menemukan *hash* sebelum kejadian (`a4f81c2`), kembalikan posisi *branch*-mu ke titik tersebut:
+Begitu kamu menemukan kode *hash* posisi sebelum kejadian (pada contoh di atas `a4f81c2`), kembalikan posisi *branch*-mu langsung ke titik itu:
 
 ```bash
 git reset --hard a4f81c2
 ```
 
-Cek lagi pakai `git log --oneline`, semua *commit* yang tadi sempat lenyap langsung kembali utuh seperti semula.
+Sekarang cek lagi dengan `git log --oneline`. Semua *commit* yang tadi sempat menghilang langsung kembali utuh seperti semula!
 
-## 2. Menghidupkan lagi branch yang tidak sengaja dihapus
+## 3. Menghidupkan lagi *branch* yang tidak sengaja terhapus
 
-Misalnya kamu salah menghapus *branch* `feat/diskon` dengan `git branch -D feat/diskon` padahal isinya belum sempat digabung ke `main`. Cari saja di `git reflog` baris terakhir saat kamu berada di *branch* itu (atau *commit* terakhir yang dibuat di sana, misalnya `a4f81c2`), lalu buat ulang *branch*-nya di titik *hash* tersebut:
+Bagaimana kalau kamu tidak sengaja menghapus sebuah *branch*—misalnya `git branch -D feat/diskon`—padahal isinya belum sempat digabung ke `main`?
+
+Jangan panik. Jalankan `git reflog`, cari baris terakhir saat kamu berada di *branch* itu (atau *commit* terakhir yang dibuat di sana, misalnya `a4f81c2`), lalu buat ulang *branch*-nya tepat di titik *hash* tersebut:
 
 ```bash
 git switch -c feat/diskon a4f81c2
 ```
 
-*Branch* `feat/diskon` langsung hidup lagi lengkap dengan seluruh riwayat *commit*-nya.
+*Branch* `feat/diskon` pun langsung hidup lagi lengkap dengan seluruh riwayat *commit*-nya.
 
-## Dua batasan yang wajib diingat
+## 4. Dua batasan yang wajib diingat
 
-1. **`git reflog` cuma menyelamatkan yang sudah pernah di-*commit*.** Kalau kamu menulis kode baru seharian tanpa pernah menjalankan `git commit` sekali pun, lalu kamu hajar dengan `git reset --hard` atau `git restore`, perubahan itu benar-benar hilang dan tidak tercatat di `reflog`.
-2. **Catatan `reflog` hanya ada di laptopmu dan punya masa kedaluwarsa.** Secara bawaan, Git menyimpan catatan *commit* yang tidak lagi terhubung ke *branch* mana pun (*unreachable commits*) selama 30 hari sebelum akhirnya dibersihkan otomatis oleh *garbage collector* (`git gc`). Jadi kalau sadar ada yang salah hapus, langsung pulihkan hari itu juga.
+Meskipun `git reflog` terasa seperti mesin waktu, ada dua batasan yang harus kamu pahami:
+1. **`git reflog` hanya bisa menyelamatkan perubahan yang sudah pernah di-*commit*.** Kalau kamu mengedit kode seharian tanpa pernah menjalankan `git commit` sekali pun, lalu menimpanya dengan `git reset --hard` atau `git restore`, editan itu tidak tercatat di `reflog` dan benar-benar hilang.
+2. **Catatan `reflog` hanya ada di laptopmu sendiri dan punya batas waktu.** Catatan ini tidak ikut di-*push* ke server. Selain itu, Git secara bawaan hanya menyimpan jejak *commit* yang sudah tidak terikat ke *branch* mana pun (*unreachable commits*) selama **30 hari** sebelum akhirnya disapu bersih otomatis oleh mekanisme pembersihan Git (*garbage collector* / `git gc`). Jadi kalau sadar ada yang salah hapus, segera pulihkan hari itu juga!
 
 ## Seri tips Git
 

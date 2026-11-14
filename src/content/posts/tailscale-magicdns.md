@@ -6,61 +6,79 @@ tags: ["tailscale","debian","pemula","dns","magicdns"]
 description: "Aktifkan MagicDNS agar server Tailscale bisa diakses lewat nama perangkat. Bedakan nama pendek, domain tailnet, dan DNS publik."
 ---
 
-MagicDNS memberi nama pada perangkat Tailscale sehingga kamu bisa mengetik `ssh admin@debian-rumah` tanpa menghafal IP. Nama itu menunjuk perangkat dalam tailnet; mengaktifkan MagicDNS tidak menerbitkan layanan ke internet.
+Menghafal deretan angka IP seperti `100.101.102.103` setiap kali mau terhubung ke server itu rasanya seperti harus menghafal nomor telepon semua temanmu secara manual. Di dunia nyata, kita menyimpan kontak dengan nama. Di Tailscale, fitur **MagicDNS** melakukan hal yang persis sama: ia memberi nama yang mudah diingat untuk setiap perangkat di *tailnet*-mu.
 
-Kedua perangkat harus sudah [terhubung ke Tailscale](/posts/tailscale-debian-pemula/). Pastikan akses memakai IP bekerja lebih dulu supaya masalah DNS tidak tertukar dengan masalah jaringan.
+Dengan MagicDNS aktif, kamu cukup mengetik `ssh admin@debian-rumah` alih-alih mengetik angka IP. Penting untuk diketahui: nama ini hanya berlaku untuk perangkat-perangkat di dalam jaringan privat *tailnet*-mu; menyalakan MagicDNS **tidak** membuat layananmu terbuka ke internet publik.
 
-## Periksa nama perangkat dan MagicDNS
+**Prasyarat:** Kedua perangkat (laptop dan server Debian) harus sudah [terhubung ke Tailscale](/posts/tailscale-debian-pemula/). Pastikan dulu kamu bisa terhubung memakai alamat IP sebelum memakai nama—supaya kalau ada kendala, kita langsung tahu apakah masalahnya ada di jaringan atau di penerjemahan nama (DNS).
 
-Buka [Machines](https://console.tailscale.com/admin/machines), pilih server, lalu periksa nama perangkatnya. Gunakan nama yang mudah dikenali, misalnya `debian-rumah`. Kalau perlu, ubah nama perangkat melalui konsol. Salin nama yang benar-benar tampil, termasuk akhiran tambahan jika terjadi benturan nama.
+## 1. Cek nama perangkat dan nyalakan MagicDNS
 
-Buka [pengaturan DNS](https://console.tailscale.com/admin/dns) dan aktifkan MagicDNS jika belum aktif. Tailnet baru biasanya sudah mengaktifkannya. Catat juga domain tailnet milikmu, misalnya bentuk `nama-tailnet.ts.net`.
+Pertama, buka halaman [Machines](https://console.tailscale.com/admin/machines) di dasbor Tailscale, pilih server Debian milikmu, lalu perhatikan nama perangkatnya. Pakai nama yang singkat dan gampang dikenali, misalnya `debian-rumah` (jika perlu, kamu bisa mengganti namanya langsung dari konsol).
 
-Klien harus menerima pengaturan DNS Tailscale. Di laptop Linux:
+Salin nama yang benar-benar tampil di konsol, termasuk akhiran angka tambahan jika kebetulan ada nama perangkat yang kembar.
+
+Selanjutnya, buka [pengaturan DNS](https://console.tailscale.com/admin/dns) di konsol dan pastikan fitur **MagicDNS** aktif (untuk akun/*tailnet* baru, fitur ini biasanya sudah menyala otomatis). Catat juga nama **domain tailnet** milikmu yang tertera di halaman itu—bentuknya kira-kira seperti `nama-tailnet.ts.net`.
+
+Agar laptopmu mau menerima daftar nama dari Tailscale, pastikan setelan DNS Tailscale aktif di perangkat klien:
+- **Di laptop Linux:** jalankan perintah ini:
 
 ```bash
 sudo tailscale set --accept-dns=true
 ```
 
-Pada aplikasi desktop, periksa opsi penggunaan DNS Tailscale. Jangan menimpa `/etc/resolv.conf` secara manual; berkas itu bisa dikelola NetworkManager atau layanan resolver sistem.
+- **Di aplikasi desktop (Windows/macOS):** cek menu pengaturan aplikasi Tailscale dan pastikan opsi penggunaan DNS Tailscale aktif.
 
-## Coba nama pendek dan nama lengkap
+> **Jangan lakukan:** Jangan mengedit atau menimpa file `/etc/resolv.conf` secara manual di Linux, karena file tersebut dikelola otomatis oleh `NetworkManager` atau layanan resolver sistem dan bisa bentrok atau tertimpa ulang.
 
-Contoh berikut mengasumsikan server bernama `debian-rumah`. Jalankan di laptop:
+## 2. Coba panggil nama pendek dan nama lengkap
+
+Misalkan server Debian-mu bernama `debian-rumah`. Dari terminal laptop, coba masuk dengan nama pendeknya saja:
 
 ```bash
 ssh admin@debian-rumah
 ```
 
-Nama lengkap menggabungkan nama perangkat dan domain tailnet. Jika konsol menampilkan `debian-rumah.nama-tailnet.ts.net`, alamat itulah yang dipakai, bukan domain contoh yang dipilih sembarang:
+Selain nama pendek, setiap perangkat juga punya **nama lengkap (FQDN)** yang menggabungkan nama perangkat dan domain *tailnet*-mu. Jika di konsol Tailscale tertera `debian-rumah.nama-tailnet.ts.net`, pakai persis nama lengkap yang tampil di konsolmu itu (jangan menyalin domain contoh di artikel ini):
 
 ```bash
-# ganti dengan nama lengkap yang disalin dari konsol
+# ganti dengan nama lengkap persis seperti yang tampil di konsol Tailscale-mu
 ssh admin@debian-rumah.nama-tailnet.ts.net
 ```
 
-Nama pendek memakai domain pencarian yang dipasang Tailscale. Untuk perangkat yang dibagikan dari tailnet lain, gunakan nama lengkap. Kebijakan akses dan autentikasi SSH tetap berlaku; DNS hanya menerjemahkan nama.
+Kapan pakai nama pendek dan kapan pakai nama lengkap?
+- **Nama pendek** (`debian-rumah`) bekerja otomatis untuk perangkat di dalam *tailnet*-mu sendiri karena Tailscale memasang domain pencarian otomatis di sistem.
+- **Nama lengkap** (`debian-rumah.nama-tailnet.ts.net`) wajib dipakai kalau kamu mengakses perangkat yang dibagikan dari *tailnet* orang lain (atau dipakai untuk alamat URL HTTPS).
 
-## Memeriksa saat nama tidak ditemukan
+Ingat: MagicDNS hanyalah "buku kontak" yang menerjemahkan nama menjadi angka IP. Kebijakan izin akses dan autentikasi SSH tetap berlaku seperti biasa.
 
-Di laptop Linux, bandingkan hasil berikut dengan IP yang tertera di konsol:
+## 3. Cara mengecek kalau nama tidak ditemukan
+
+Jika koneksi memakai nama gagal, jangan langsung menebak. Cek dulu dari laptop Linux apakah nama `debian-rumah` sudah diterjemahkan ke alamat IP Tailscale yang benar seperti di konsol:
 
 ```bash
 getent ahosts debian-rumah
 tailscale status
 ```
 
-Jika IP bisa dipakai tetapi nama pendek gagal, coba nama lengkap. Jika keduanya gagal, cek apakah MagicDNS aktif dan klien menerima pengaturan DNS. VPN lain atau DNS terenkripsi yang diatur sendiri di peramban juga dapat mengubah jalur resolusi.
+Langkah diagnosa bertahap:
+1. Jika mengakses lewat **IP berhasil**, tetapi lewat **nama pendek gagal**, coba gunakan **nama lengkap** (`.ts.net`).
+2. Jika **keduanya gagal**, periksa kembali apakah MagicDNS sudah aktif di dasbor dan apakah laptopmu sudah menyalakan `accept-dns`.
+3. Cek apakah di laptop ada VPN lain yang sedang menyala atau fitur *DNS over HTTPS / Secure DNS* yang diatur khusus di browser—keduanya bisa membelokkan pencarian nama keluar dari jalur Tailscale.
 
-Di macOS, alat seperti `host` dan `nslookup` bisa melewati resolver sistem, sehingga kegagalannya tidak selalu berarti MagicDNS rusak. Uji dengan aplikasi yang memang akan dipakai, misalnya `ssh` atau `ping`. Ping biasa bisa ditolak kebijakan meskipun DNS berhasil; baca apakah nama telah diterjemahkan ke IP sebelum menilai hasilnya.
+**Catatan khusus pengguna macOS:** Alat diagnostik terminal seperti `host` dan `nslookup` sering kali melewati (*bypass*) sistem resolver bawaan macOS, sehingga perintah itu bisa saja terlihat gagal padahal MagicDNS sebenarnya berjalan normal! Lebih baik uji langsung dengan aplikasi yang hendak kamu pakai (misalnya `ssh` atau `ping`). Catatan lain: `ping` biasa bisa saja ditolak oleh aturan firewall/kebijakan meskipun penerjemahan nama sudah berhasil—perhatikan dulu apakah nama berhasil berubah menjadi IP sebelum menyimpulkan hasilnya.
 
-## Nama .ts.net tidak berarti layanan publik
+## 4. Nama `.ts.net` tidak otomatis berarti aman pakai HTTPS atau terbuka ke publik
 
-MagicDNS tidak otomatis memasang HTTPS pada aplikasi atau mengubah alamat dengarnya. `http://debian-rumah:3000` hanya bekerja bila ada layanan di alamat yang terjangkau dan akses portnya diizinkan. Aplikasi yang hanya mendengarkan di `127.0.0.1` tetap tidak menerima koneksi langsung dari HP.
+Ada dua kesalahpahaman yang paling sering terjadi pada pemula setelah melihat alamat `.ts.net`:
+1. **MagicDNS tidak otomatis menyalakan HTTPS** pada aplikasimu, dan tidak mengubah di alamat mana aplikasimu mendengarkan.
+2. Membuka `http://debian-rumah:3000` hanya akan berhasil jika aplikasi tersebut benar-benar mendengarkan pada alamat Tailscale (bukan `127.0.0.1`) dan port `3000` diizinkan. Aplikasi yang cuma berjalan di `127.0.0.1` tetap tidak akan bisa dibuka langsung dari HP.
 
-Untuk HTTPS pada aplikasi loopback, gunakan [Tailscale Serve](/posts/tailscale-serve-funnel/). Sertifikat HTTPS memakai nama lengkap perangkat dan domain tailnet. Penerbitannya dapat mencatat nama itu pada log transparansi sertifikat publik; hindari nama perangkat yang memuat informasi sensitif.
+Kalau kamu ingin mengakses aplikasi lokal (`127.0.0.1`) lewat alamat HTTPS `.ts.net` yang rapi, gunakan fitur [Tailscale Serve](/posts/tailscale-serve-funnel/).
 
-Jika hendak menonaktifkan DNS Tailscale sementara pada satu klien Linux, gunakan `sudo tailscale set --accept-dns=false`. Ini juga menghentikan penerimaan pengaturan DNS tailnet lain pada klien tersebut, bukan hanya nama pendek MagicDNS. Kembalikan ke `true` untuk memakainya lagi.
+Perlu diketahui juga, saat Tailscale menerbitkan sertifikat HTTPS untuk nama lengkap perangkat dan domain *tailnet*-mu, nama lengkap tersebut dapat tercatat di log transparansi sertifikat publik (*Certificate Transparency log*). Karena itu, **hindari memberi nama perangkat dengan kata-kata sensitif atau rahasia** (seperti nama klien rahasia atau kata sandi).
+
+Terakhir, jika suatu saat kamu ingin mematikan penerimaan DNS Tailscale sementara di satu klien Linux, jalankan `sudo tailscale set --accept-dns=false` (perhatikan bahwa ini juga menghentikan pengaturan DNS *tailnet* lainnya di mesin tersebut, bukan hanya nama pendek MagicDNS). Kembalikan ke `true` saat ingin memakainya lagi.
 
 ## Referensi
 

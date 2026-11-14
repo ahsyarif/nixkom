@@ -6,11 +6,17 @@ tags: ["debian", "linux", "keamanan", "pemula", "ufw", "firewall"]
 description: "Pasang UFW di Debian 13: cek port SSH asli, izinkan sebelum enable, uji sesi baru, dan tahu batas firewall saat memakai Docker."
 ---
 
-Firewall menentukan koneksi masuk mana yang boleh sampai ke layanan di servermu. UFW (*Uncomplicated Firewall*) adalah antarmuka sederhana untuk aturan firewall Linux. Kesalahan paling klasik pemula: mengaktifkan UFW sebelum mengizinkan SSH, lalu sesi putus dan server tidak bisa dimasuki. Artikel ini menghindari itu dengan urutan yang benar.
+Bayangkan servermu adalah sebuah rumah dengan banyak pintu dan jendela bernomor (disebut **port**). **Firewall** bertugas menjadi satpam di depan pintu: menentukan siapa yang boleh masuk, lewat pintu nomor berapa, dan mana yang harus langsung ditolak.
 
-Prasyarat: login `admin` + `sudo` sudah jalan ([artikel pembuka](/posts/debian-server-keamanan-awal/)) dan kamu tahu cara membuka konsol recovery provider. IP `203.0.113.10` adalah contoh; **ganti dengan IP servermu**.
+Di Debian, ada alat bernama **UFW** (*Uncomplicated Firewall*) yang membuat pengaturan firewall Linux jauh lebih ramah untuk pemula dibandingkan menulis aturan jaringan yang rumit secara manual.
 
-## 1. Pasang dan lihat kondisi awal
+Namun, ada satu kesalahan paling klasik yang sering dialami pemula: menyalakan UFW *sebelum* mengizinkan pintu SSH. Akibatnya, begitu UFW menyala, koneksi SSH langsung putus dan kamu terkunci di luar servermu sendiri! Artikel ini akan memandumu mengaktifkan UFW dengan urutan yang aman.
+
+**Prasyarat:** Akun `admin` dengan hak `sudo` sudah aktif (dari [artikel pembuka seri](/posts/debian-server-keamanan-awal/)), dan kamu sudah tahu cara membuka **konsol recovery** di panel penyedia VPS sebagai jalan darurat. Angka `203.0.113.10` di bawah adalah IP contoh; **ganti dengan IP servermu**.
+
+## 1. Pasang UFW dan cek kondisi awal
+
+Pertama, perbarui daftar paket, pasang UFW, lalu cek apakah ia sudah menyala atau belum:
 
 ```bash
 # di server
@@ -19,7 +25,11 @@ sudo apt install ufw
 sudo ufw status verbose
 ```
 
-Pada pemasangan baru yang belum diaktifkan, statusnya `Status: inactive`. Kalau sudah aktif, berhenti sebelum mengubah kebijakan: inventarisasi aturan dan kebutuhan layanan yang ada dulu. Status `inactive` hanya menyatakan UFW tidak aktif, bukan berarti tidak ada firewall lain.
+Pada server baru yang belum pernah memakai UFW, keluarannya adalah `Status: inactive`.
+
+> **Hati-hati:** Jika statusnya ternyata sudah `active`, **berhenti dulu** sebelum mengubah aturan apa pun! Catat dulu semua aturan yang ada dan layanan apa saja yang sedang berjalan agar tidak memutus akses layanan lain.
+
+Selain itu, status `inactive` pada UFW **tidak berarti** servermu benar-benar kosong tanpa firewall lain. Bisa jadi penyedia cloud atau aplikasi lain sudah memasang aturan jaringan lewat `iptables` atau `nftables`. Mari periksa kondisinya:
 
 ```bash
 # di server
@@ -28,11 +38,15 @@ sudo iptables -S
 sudo nft list ruleset
 ```
 
-Kalau provider atau layanan lain sudah menambah aturan, periksa seluruh keluaran tersebut. Pada Debian, `iptables` dapat memakai backend `nftables`. Jika alatnya tidak tersedia, periksa dengan alat firewall yang terpasang; jangan menganggap aturan kosong. Jangan mencampur UFW dengan pengelola firewall lain tanpa memahami aturan yang masing-masing kelola.
+Arti perintah-perintah di atas:
+- `ufw show added`: melihat daftar aturan UFW yang sudah sempat ditambahkan (meski UFW belum dinyalakan).
+- `iptables -S` dan `nft list ruleset`: mengintip aturan firewall Linux di level sistem. Pada Debian 13, `iptables` biasanya memakai sistem `nftables` di balik layar.
+
+Jika salah satu perintah di atas tidak tersedia, periksa dengan alat firewall yang terpasang; jangan langsung menganggap aturan kosong. Jangan juga mencampur UFW dengan pengelola firewall lain secara bersamaan tanpa memahami aturan mana yang dikelola oleh masing-masing alat.
 
 ## 2. Pastikan port SSH yang sebenarnya
 
-Jangan menebak 22. Lihat port yang dipakai `sshd`:
+Jangan menebak bahwa SSH pasti berjalan di port `22`. Bisa saja servermu memakai port lain (misalnya `2222`). Cek langsung dari sistem yang aktif:
 
 ```bash
 # di server
@@ -40,11 +54,14 @@ sudo ss -ltnp | grep sshd
 sudo sshd -T | grep -i '^port'
 ```
 
-Pada instalasi bawaan hasilnya `0.0.0.0:22` dan `[::]:22`, serta `port 22`. Kalau berbeda, pakai angka itu di semua perintah di bawah. Cara membaca `ss` dijelaskan di [artikel cek port](/posts/debian-cek-port/).
+- `ss -ltnp` melihat program apa yang sedang "mendengarkan" koneksi TCP di server, lalu `grep sshd` menyaring baris milik SSH.
+- `sshd -T` mencetak konfigurasi SSH yang benar-benar dipakai server.
 
-## 3. Izinkan SSH dulu, baru aktifkan
+Pada pengaturan bawaan Debian, hasilnya adalah `0.0.0.0:22`, `[::]:22`, serta `port 22`. Jika di servermu angkanya berbeda, gunakan angka port milikmu di semua perintah pada langkah berikutnya. Cara membaca keluaran `ss` dibahas lebih lengkap di [artikel cek port](/posts/debian-cek-port/).
 
-Atur kebijakan bawaan: tolak masuk, izinkan keluar.
+## 3. Izinkan SSH dulu, baru nyalakan firewall
+
+Aturan dasar firewall yang aman adalah: **tolak semua koneksi masuk dari luar** secara bawaan (`deny incoming`), tetapi **izinkan semua koneksi keluar dari server** (`allow outgoing`) supaya server tetap bisa mengunduh update. Setelah itu, baru kita buka pintu khusus untuk SSH:
 
 ```bash
 # di server
@@ -53,7 +70,7 @@ sudo ufw default allow outgoing
 sudo ufw allow 22/tcp comment 'SSH'
 ```
 
-`allow 22/tcp` dengan UFW membuat aturan IPv4 dan IPv6 sekaligus selama IPv6 aktif di `/etc/default/ufw` (`IPV6=yes`, nilai bawaan Debian). Cek:
+Menjalankan `allow 22/tcp` di UFW otomatis membuat aturan untuk alamat IPv4 maupun IPv6 sekaligus, selama dukungan IPv6 aktif di file `/etc/default/ufw` (`IPV6=yes`, yang merupakan bawaan Debian). Pastikan dengan dua perintah ini:
 
 ```bash
 # di server
@@ -61,29 +78,40 @@ grep ^IPV6 /etc/default/ufw
 sudo ufw show added
 ```
 
-Kalau kamu punya IP tetap dan ingin lebih ketat, batasi sumbernya, misalnya `sudo ufw allow from 198.51.100.7 to any port 22 proto tcp`. Hati-hati: IP rumah yang berubah bisa menguncimu. Kalau tidak yakin, jangan batasi.
+**Ingin lebih ketat?** Kalau kamu punya alamat IP publik tetap (IP statis, misalnya IP VPN atau kantor), kamu bisa membatasi agar pintu SSH hanya mau dibuka jika diketuk dari IP tersebut saja:
 
-Aturan sumber terbatas itu tidak mempersempit `allow 22/tcp` yang sudah ada; keduanya bersifat menambah izin. Untuk beralih, buat izin sumber terbatas, uji dari alamat tersebut, baru hapus izin umum sambil tetap menyimpan sesi dan konsol pemulihan. Contoh `198.51.100.7` harus diganti IP publik laptopmu; akses IPv6 memerlukan aturan sumber IPv6 tersendiri.
+```bash
+# ganti 198.51.100.7 dengan IP publik tetapmu
+sudo ufw allow from 198.51.100.7 to any port 22 proto tcp
+```
 
-Baru aktifkan, dengan sesi SSH lama **tetap terbuka**:
+> **Peringatan untuk pemula:** IP internet rumah atau Wi-Fi biasa sering berubah-ubah (dinamis). Kalau IP rumahmu besok berubah, aturan ini bisa menguncimu! Jadi kalau tidak yakin apakah IP-mu tetap, lewati pembatasan IP ini dan cukup pakai `allow 22/tcp` biasa.
+
+Selain itu, perlu diketahui bahwa menambah aturan khusus satu IP **tidak otomatis menghapus** aturan `allow 22/tcp` umum yang sudah dibuat sebelumnya—keduanya bersifat saling menambah. Jika ingin beralih ke IP tertentu saja: buat dulu aturan IP khusus, uji login dari IP itu, baru hapus aturan umum sambil tetap membiarkan sesi SSH lama dan konsol recovery siap sedia. Untuk akses lewat IPv6, kamu juga perlu aturan sumber IPv6 tersendiri.
+
+Sekarang pintu SSH sudah diberi izin. Dengan **sesi SSH yang sekarang tetap terbuka**, nyalakan UFW:
 
 ```bash
 # di server
 sudo ufw enable
 ```
 
-UFW memperingatkan bahwa ini bisa memutus koneksi SSH. Karena SSH sudah diizinkan, jawab `y`. Lihat hasilnya:
+UFW akan memunculkan peringatan bahwa menyalakan firewall dapat memutus koneksi SSH yang sedang berjalan. Karena kamu sudah mengizinkan port `22/tcp` di langkah sebelumnya, ketik `y` lalu tekan Enter.
+
+Periksa daftar aturan yang aktif:
 
 ```bash
 # di server
 sudo ufw status numbered
 ```
 
-Harus ada baris untuk `22/tcp` dan `22/tcp (v6)` berstatus `ALLOW IN`.
+Pastikan muncul baris untuk `22/tcp` dan `22/tcp (v6)` dengan status `ALLOW IN`.
 
-## 4. Buka 80/443 hanya kalau memang melayani web
+## 4. Buka port 80/443 hanya jika melayani web
 
-Server yang belum menjalankan web tidak perlu membuka apa pun selain SSH. Kalau kamu memasang Nginx, Caddy, atau sejenisnya:
+Kalau servermu belum menjalankan web server, kamu **tidak perlu** membuka port lain selain SSH. Biarkan pintunya tertutup rapat.
+
+Jika kamu sudah memasang web server seperti Nginx atau Caddy agar website bisa dibuka dari browser (`http` di port 80 dan `https` di port 443), barulah izinkan kedua port tersebut:
 
 ```bash
 # di server
@@ -91,24 +119,25 @@ sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 ```
 
-Satu-satu per kebutuhan; jangan "buka semua dulu, tutup nanti". Database (3306, 5432), Redis (6379), dan server pengembangan (3000, 5173) tidak seharusnya dibuka ke internet.
+Buka pintu satu per satu sesuai kebutuhan. Jangan pernah memakai prinsip "buka semua dulu, tutup nanti". Layanan internal seperti database (MySQL `3306`, PostgreSQL `5432`), Redis (`6379`), atau server pengembangan (`3000`, `5173`) **tidak boleh** dibuka ke internet bebas.
 
-## 5. Uji dari sesi baru
+## 5. Uji dari terminal kedua
 
-Jangan percaya status UFW saja. Dari terminal **kedua** di laptop, buka sesi SSH baru:
+Jangan hanya percaya tulisan status di layar. Buktikan bahwa kamu benar-benar masih bisa login dari luar! Biarkan sesi SSH pertamamu tetap terbuka, lalu buka **terminal kedua** di laptop dan coba login lagi:
 
 ```bash
 # di laptop, terminal kedua
 ssh admin@203.0.113.10
 ```
 
-Kalau sesi baru masuk, aturanmu bekerja dan sesi lama boleh ditutup. Kalau tidak masuk, jangan tutup sesi lama; perbaiki dari sana (`sudo ufw status numbered`).
+- Jika sesi kedua **berhasil masuk**, selamat—aturan firewallmu bekerja dengan benar dan sesi pertama boleh ditutup.
+- Jika sesi kedua **gagal masuk**, jangan panik dan **jangan tutup sesi pertama**. Perbaiki aturannya langsung dari sesi pertama yang masih hidup lewat `sudo ufw status numbered`.
 
-Ingat juga ada **firewall provider** (cloud firewall/security group). Itu lapisan terpisah di luar server. Kalau UFW mengizinkan 22 tapi panel provider memblokirnya, SSH tetap gagal, dan sebaliknya. Periksa keduanya kalau ada yang tidak tembus.
+Jangan lupa juga soal **firewall provider** (*cloud firewall* / *security group*) di dasbor web penyedia VPS. Itu adalah satpam terpisah di luar server. Jika UFW di server sudah mengizinkan port 22 tetapi panel provider memblokirnya, koneksi SSH tetap gagal—dan begitu pula sebaliknya. Cek keduanya kalau ada koneksi yang tidak mau tembus.
 
-## 6. Mengubah atau menghapus aturan
+## 6. Mengubah atau menghapus aturan UFW
 
-Hapus aturan dengan nomor dari `status numbered`:
+Untuk menghapus aturan, lihat nomor urutnya lewat `status numbered`, lalu hapus berdasarkan nomor tersebut:
 
 ```bash
 # di server
@@ -116,31 +145,42 @@ sudo ufw status numbered
 sudo ufw delete 3
 ```
 
-Nomor bergeser setiap ada penghapusan, jadi lihat daftar lagi sebelum menghapus berikutnya. Untuk menghindari salah nomor, hapus dengan aturan yang sama persis seperti saat membuatnya:
+**Perhatian:** Setiap kali satu aturan dihapus, **nomor urut aturan di bawahnya akan bergeser**. Jadi selalu jalankan `sudo ufw status numbered` lagi sebelum menghapus aturan berikutnya!
+
+Supaya lebih aman dan tidak salah nomor, kamu juga bisa menghapus dengan mengetik ulang persis aturan yang dulu dibuat:
 
 ```bash
 # di server
 sudo ufw delete allow 443/tcp
 ```
 
-**Jangan menghapus aturan SSH** (`22/tcp` dan versi v6-nya) selama kamu masih bergantung pada SSH.
+**Jangan pernah menghapus aturan SSH** (`22/tcp` dan versi `(v6)`-nya) selama kamu masih login ke server lewat jalur SSH publik.
 
-## Kalau terkunci
+## Kalau sampai terkunci
 
-Masuk lewat konsol provider sebagai `root` atau `admin`, lalu:
+Jika kesalahan konfigurasi membuatmu terkunci dan semua sesi SSH tertutup:
+
+1. Masuk ke dasbor penyedia VPS di browser, lalu buka **konsol recovery / VNC / serial console**.
+2. Login sebagai `root` atau `admin`.
+3. Matikan UFW sementara:
 
 ```bash
 # di server (lewat konsol)
 sudo ufw disable
 ```
 
-Itu mematikan UFW sehingga SSH terbuka kembali. Perbaiki aturan (`ufw allow 22/tcp`), lalu `sudo ufw enable` lagi. Kalau ternyata penyebabnya firewall provider, ubah di panel provider, bukan di server.
+Perintah itu langsung mematikan UFW sehingga jalur SSH terbuka kembali. Setelah itu, perbaiki aturannya (`sudo ufw allow 22/tcp`), lalu aktifkan kembali dengan `sudo ufw enable`. Jika ternyata penyebabnya bukan UFW melainkan firewall di panel provider, ubah pengaturannya dari dasbor provider.
 
-## Peringatan: Docker dan port yang dipublikasikan
+## Peringatan penting: Docker bisa melewati UFW!
 
-Kalau kamu memakai Docker, jangan menganggap UFW otomatis melindungi kontainer. Port yang dipublikasikan dengan `-p 8080:80` dipasang Docker lewat aturan firewall-nya sendiri, dan lalu lintas ke kontainer **tidak melewati aturan INPUT UFW**. Dokumentasi Docker menjelaskan bahwa aturan UFW tidak membatasi port yang dipublikasikan itu. Akibatnya `ufw status` bisa tampak aman padahal port kontainer terbuka ke dunia.
+Jika di server ini kamu menjalankan aplikasi dengan **Docker**, ada satu jebakan besar yang wajib diketahui pemula: **jangan mengira UFW otomatis melindungi kontainer Docker.**
 
-Publikasikan port aplikasi hanya ke loopback (`-p 127.0.0.1:8080:80`) jika diakses lewat reverse proxy pada host. Untuk penyaringan Docker yang lebih lanjut, ikuti dokumentasi sesuai backend: rantai `DOCKER-USER` berlaku pada backend iptables, bukan backend nftables Docker. Periksa juga dari luar, seperti di [artikel cek port](/posts/debian-cek-port/).
+Saat kamu menjalankan kontainer dengan opsi seperti `-p 8080:80`, Docker memasang aturan firewallnya sendiri di sistem Linux. Akibatnya, lalu lintas dari internet menuju kontainer **langsung masuk tanpa melewati aturan `INPUT` milik UFW**. Jadi, di `ufw status` port `8080` mungkin terlihat tertutup rapat, padahal sebenarnya terbuka bebas ke seluruh dunia!
+
+Cara amannya:
+- Jika kontainer diakses lewat *reverse proxy* di server yang sama (seperti Nginx atau Caddy), ikat port kontainer hanya ke alamat lokal server (`-p 127.0.0.1:8080:80`) agar tidak bisa diakses langsung dari internet.
+- Untuk penyaringan Docker yang lebih lanjut, ikuti dokumentasi resmi Docker sesuai *backend* firewall yang dipakai (rantai `DOCKER-USER` berlaku pada backend `iptables`, bukan pada backend `nftables` Docker).
+- Selalu cek apakah port benar-benar tertutup dari luar menggunakan langkah di [artikel cek port](/posts/debian-cek-port/).
 
 ## Referensi
 

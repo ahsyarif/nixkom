@@ -6,65 +6,72 @@ tags: ["git", "tips", "pemula"]
 description: "Cara menyimpan pekerjaan yang belum siap di-commit ke laci sementara waktu harus pindah branch mendadak."
 ---
 
-Lagi setengah jalan ngerjain fitur, tiba-tiba kamu harus pindah ke *branch* `main` buat ngecek *bug* laporan pengguna. Begitu ketik `git switch main`, Git menolak karena berkas yang sedang kamu edit bakal tertimpa. Mau di-*commit* sekarang kodenya masih belum jalan, mau dihapus sayang. Di saat seperti ini, masukkan dulu pekerjaanmu ke laci sementara pakai `git stash`.
+Bayangkan kamu sedang setengah jalan mengerjakan fitur baru—kodenya masih berantakan dan belum jalan. Tiba-tiba ada laporan *bug* darurat dan kamu harus segera pindah ke *branch* `main`.
 
-## 1. Simpan selalu dengan pesan dan opsi `-u`
+Begitu mengetik `git switch main`, Git sering kali menolak karena berkas yang sedang kamu edit bisa tertimpa. Mau di-*commit* sekarang kodenya belum layak, mau dibuang sayang sekali.
 
-Kebanyakan pemula cuma mengetik `git stash` polosan. Ada dua masalah kalau tanpa opsi:
-1. Tumpukan *stash* cuma diberi label generik `WIP on nama-branch`, jadi kalau ada tiga tumpukan kamu bakal lupa mana yang isinya apa.
-2. Berkas baru yang belum pernah di-*add* (*untracked*) **tidak ikut disimpan** dan tetap berceceran di folder kerja.
+Di situasi seperti inilah **`git stash`** jadi penyelamat. Bayangkan `git stash` seperti **laci meja sementara**: kamu memasukkan semua perubahan setengah jadimu ke dalam laci agar meja kerjamu kembali bersih dan bisa dipakai pindah *branch* dengan aman, lalu nanti tinggal diambil lagi saat kembali.
 
-Biasakan selalu memakai `git stash push -u -m "keterangan"`:
+## 1. Selalu simpan dengan pesan yang jelas dan opsi `-u`
+
+Banyak pemula hanya mengetik `git stash` polosan tanpa opsi apa pun. Kebiasaan itu menimbulkan dua masalah kecil yang sering bikin bingung:
+1. Laci hanya diberi label umum seperti `WIP on nama-branch`, jadi kalau kamu punya tiga titipan di laci, kamu akan lupa isi masing-masing.
+2. **Berkas baru yang belum pernah di-`git add`** (*untracked files*) tidak ikut masuk ke laci dan malah tetap tertinggal berceceran di folder kerja!
+
+Karena itu, biasakan memakai format yang rapi ini:
 
 ```bash
 git stash push -u -m "validasi form kupon belum kelar"
 ```
 
-Opsi `-u` (`--include-untracked`) memastikan berkas baru ikut masuk ke laci penyimpanan, dan folder kerjamu langsung bersih kembali ke titik *commit* terakhir.
+Arti opsinya:
+- `-u` (`--include-untracked`): ikut memasukkan berkas baru yang belum pernah dilacak Git ke dalam laci.
+- `-m "..."`: memberi label catatan agar kamu ingat pekerjaan apa yang ada di dalam tumpukan *stash* ini.
 
-## 2. Lihat daftar dan intip isinya
+Begitu dijalankan, folder kerjamu langsung bersih kembali seperti *commit* terakhir, dan kamu bebas berpindah *branch*.
 
-Untuk melihat semua pekerjaan yang sedang dititipkan di laci *stash*:
+## 2. Melihat daftar titipan dan mengintip isinya
+
+Untuk melihat semua pekerjaan yang sedang tersimpan di laci *stash*:
 
 ```bash
 git stash list
 ```
 
-Hasilnya diurutkan dari yang paling baru masuk (`stash@{0}`):
+Isinya diurutkan mulai dari yang paling baru masuk (bernomor `stash@{0}`):
 
 ```text
 stash@{0}: On feat/checkout: validasi form kupon belum kelar
 stash@{1}: On feat/login: coba ganti library session
 ```
 
-Kalau lupa detail kode apa saja yang ada di dalam `stash@{0}`, intip dulu *diff*-nya pakai `show -p` sebelum dikembalikan:
+Kalau lupa perubahan kode apa saja yang tersimpan di dalam `stash@{0}`, intip dulu perubahannya (*diff*) memakai `show -p` sebelum mengeluarkannya kembali:
 
 ```bash
 git stash show -p stash@{0}
 ```
 
-## 3. Ambil kembali dengan `pop` atau `apply`
+## 3. Mengambil kembali titipan dengan `pop` atau `apply`
 
-Sesudah urusan di *branch* lain beres dan kamu balik ke *branch* semula, ambil kembali kodinganmu:
+Setelah urusan darurat di *branch* lain selesai dan kamu kembali ke *branch* awal, keluarkan lagi pekerjaanmu dari laci:
 
 ```bash
 git stash pop
 ```
 
-`git stash pop` mengambil tumpukan paling atas (`stash@{0}`), menerapkannya ke folder kerjamu, lalu otomatis menghapus catatan tersebut dari daftar *stash*. Kalau kamu mau mengambil tumpukan urutan lain, sebutkan nomornya seperti `git stash pop stash@{1}`.
+- **`git stash pop`**: mengambil tumpukan paling atas (`stash@{0}`), menerapkannya kembali ke folder kerjamu, lalu **otomatis menghapusnya** dari daftar *stash*. Kalau mau mengambil tumpukan urutan lain, sebutkan nomornya, misalnya `git stash pop stash@{1}`.
+- **`git stash apply`**: menempelkan perubahan dari laci ke folder kerja, **tetapi tetap menyimpan salinannya** di dalam daftar *stash*. Pakai `apply` jika satu potongan perubahan yang sama ingin kamu tempelkan ke lebih dari satu *branch*.
 
-Bedanya dengan `git stash apply`: perintah `apply` menempelkan kembali perubahanmu ke folder kerja, tapi **tetap menyimpan salinannya** di dalam daftar *stash*. Pakai `apply` kalau satu potongan perubahan yang sama ingin kamu tempelkan ke dua *branch* berbeda.
+## 4. Membersihkan tumpukan *stash* yang tidak terpakai lagi
 
-## 4. Bersih-bersih tumpukan yang tidak terpakai
-
-Kalau satu tumpukan sudah tidak dibutuhkan lagi, hapus satu per satu dengan `drop`, atau kosongkan seluruh laci dengan `clear`:
+Kalau satu titipan di laci ternyata sudah tidak jadi dipakai, hapus satu per satu dengan `drop`, atau kosongkan seluruh isi laci sekaligus dengan `clear`:
 
 ```bash
-git stash drop stash@{1}   # hapus satu tumpukan spesifik
-git stash clear            # hapus SEMUA stash (tidak bisa dibatalkan)
+git stash drop stash@{1}   # menghapus satu tumpukan tertentu
+git stash clear            # menghapus SEMUA stash (hati-hati: tidak bisa dibatalkan!)
 ```
 
-Tip praktis: usahakan jangan menumpuk lebih dari dua atau tiga *stash* sampai berhari-hari. Kalau kamu sering harus mengerjakan dua *branch* besar secara bersamaan dalam waktu lama, lebih rapi membuka folder terpisah lewat `git worktree` daripada mengandalkan *stash*.
+**Tip praktis:** Usahakan jangan menimbun lebih dari dua atau tiga *stash* hingga berhari-hari sampai lupa konteksnya. Jika kamu sering harus membuka dua *branch* besar secara paralel dalam waktu lama, cara yang jauh lebih rapi adalah membuka folder kerja terpisah menggunakan `git worktree` daripada terus-terusan memakai *stash*.
 
 ## Seri tips Git
 

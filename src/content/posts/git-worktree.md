@@ -6,51 +6,58 @@ tags: ["git", "tips", "workflow"]
 description: "Review PR atau ngerjain hotfix mendadak tanpa git stash dan tanpa clone ulang, cukup buka folder worktree baru."
 ---
 
-Lagi asyik ngoprek fitur, tiba-tiba diminta ngecek *pull request* teman atau nambal *bug* darurat di `main`. Kalau pakai `git stash` terus pindah *branch*, tembolok kompilasi sering ulang dari nol, *dev server* harus dimatikan, dan tab editor ikut berantakan. Pakai `git worktree`, kamu tinggal membuka folder kerja kedua di sebelah folder lama yang tetap berbagi satu isi `.git` yang sama.
+Bayangkan kamu sedang asyik membongkar fitur baru di satu *branch*, lalu tiba-tiba diminta mengecek *pull request* teman atau menambal *bug* darurat di `main`.
 
-## Bikin worktree baru
+Kalau kamu memakai cara biasa (`git stash` lalu `git switch main`), sering kali banyak pekerjaan jadi terganggu: *server* pengembangan (*dev server*) harus dimatikan, *cache* build atau kompilasi mengulang dari nol, dan tab-tab di code editor ikut berubah semua.
 
-Misalnya kamu lagi di folder `proyek/` pada *branch* fitur, lalu harus bikin *hotfix* dari `main`:
+Dengan **`git worktree`**, kamu bisa membuka "meja kerja kedua" berupa folder baru tepat di sebelah folder proyekmu sekarang. Kedua folder itu tetap berbagi satu riwayat Git (`.git`) yang sama—tidak perlu `git clone` ulang, tidak perlu mengacak-acak meja kerja pertamamu.
+
+## 1. Membuka folder *worktree* baru
+
+Misalkan kamu sedang berada di folder `proyek/` pada *branch* fitur, lalu tiba-tiba harus membuat perbaikan darurat (*hotfix*) dari `main`:
 
 ```bash
 git worktree add ../proyek-hotfix -b hotfix/login main
 ```
 
-Perintah itu langsung membuat folder `../proyek-hotfix` berisi *branch* baru `hotfix/login` yang bercabang dari `main`. Kamu tinggal `cd ../proyek-hotfix`, bereskan masalahnya, *commit*, dan *push* tanpa menyentuh folder `proyek/` yang pertama.
+Apa yang terjadi saat perintah itu dijalankan?
+- Git membuat folder baru bernama `proyek-hotfix` satu tingkat di sebelah folder `proyek/`.
+- Di dalam folder baru itu, Git otomatis membuatkan *branch* baru `hotfix/login` yang bercabang dari `main`.
+- Kamu tinggal pindah ke sana (`cd ../proyek-hotfix`), perbaiki *bug*-nya, *commit*, dan *push*—sementara folder `proyek/` pertamamu tetap utuh persis seperti kondisi terakhir kamu meninggalkannya!
 
-Kalau cuma mau meninjau atau menjalankan kode dari *branch* rekan kerja tanpa bikin *branch* lokal baru, arahkan langsung ke referensi *remote*-nya (*detached HEAD*):
+Kalau kamu cuma mau meninjau atau menjalankan kode dari *branch* rekan kerja tanpa berniat membuat *branch* lokal baru, arahkan langsung ke referensi servernya (`origin/fitur-x`). Git akan membukanya dalam mode *detached HEAD* (mode hanya melihat/menguji di titik commit itu tanpa terikat ke nama *branch* lokal):
 
 ```bash
 git fetch origin
 git worktree add ../proyek-review origin/fitur-x
 ```
 
-## Lihat daftar dan hapus kalau sudah kelar
+## 2. Melihat daftar dan menghapus *worktree* yang sudah selesai
 
-Begitu urusan *hotfix* atau *review* selesai, cek daftar *worktree* yang masih nyangkut lalu hapus lewat Git:
+Begitu urusan *hotfix* atau *review* selesai, kembali ke folder utama, cek daftar *worktree* yang aktif, lalu tutup dengan `remove`:
 
 ```bash
 git worktree list
 git worktree remove ../proyek-review
 ```
 
-Kalau foldernya tadi telanjur kamu hapus manual pakai `rm -rf`, bersihkan sisa catatannya di `.git/worktrees` dengan:
+Jika foldernya tadi telanjur kamu hapus manual memakai `rm -rf` atau dari File Manager/Finder, bersihkan sisa catatan yang tertinggal di `.git/worktrees` dengan:
 
 ```bash
 git worktree prune
 ```
 
-## Tiga aturan mainnya
+## 3. Tiga aturan main *worktree* yang wajib diketahui
 
-Satu *branch* cuma boleh dibuka di satu *worktree* pada saat yang sama. Kalau kamu coba membuka `main` di dua tempat, Git langsung menolak dengan pesan `fatal: 'main' is already used by worktree at ...` supaya dua folder nggak saling menimpa *commit*.
+1. **Satu *branch* hanya boleh dibuka di satu *worktree* pada waktu bersamaan.** Jika kamu mencoba membuka `main` di dua folder sekaligus, Git menolak dengan pesan `fatal: 'main' is already used by worktree at ...`. Aturan ini menjaga agar dua folder tidak saling menimpa riwayat *commit*.
+2. **Riwayat dan *fetch* dibagi bersama.** Semua catatan *commit*, *stash*, dan hasil `git fetch` dipakai bareng oleh seluruh *worktree*. Begitu kamu membuat *commit* atau menjalankan `git fetch` di satu folder, folder sebelahnya langsung mengetahuinya tanpa perlu mengunduh ulang dari internet.
+3. **Berkas yang ada di `.gitignore` tidak ikut disalin.** Karena `git worktree` hanya memunculkan berkas yang dilacak oleh Git, folder seperti `node_modules/`, `dist/`, atau file rahasia `.env` lokal tidak otomatis muncul di folder baru. Kamu perlu menjalankan `npm install` atau menyalin file `.env` sendiri ke *worktree* baru tersebut.
 
-Semua objek Git, *stash*, dan hasil `git fetch` dipakai bareng-bareng. Begitu kamu bikin *commit* atau *fetch* di satu *worktree*, *worktree* sebelahnya langsung bisa melihat *commit* itu tanpa perlu ambil ulang dari internet.
+## 4. Opsional: pola *bare repo* untuk yang sering membuka banyak *branch*
 
-Berkas yang masuk `.gitignore` nggak ikut disalin ke folder baru. Jadi folder seperti `node_modules/`, `dist/`, atau berkas `.env` lokal perlu kamu pasang atau salin sendiri di *worktree* baru.
+*(Catatan untuk pemula: bagian ini adalah teknik lanjutan yang boleh kamu lewati kalau baru belajar—cara `git worktree add` di langkah 1 sudah lebih dari cukup untuk kebutuhan harian.)*
 
-## Pola bare repo buat yang sering loncat branch
-
-Kalau sehari-hari kamu memang selalu membuka tiga sampai empat *branch* barengan, enak sekalian melakukan *clone* sebagai *bare repository* supaya tiap *branch* punya kamar sejajar:
+Jika pekerjaanmu sehari-hari memang selalu membuka tiga sampai empat *branch* secara bersamaan, banyak pengembang suka melakukan `git clone --bare` agar tidak ada satu folder yang dianggap "folder utama", melainkan setiap *branch* punya kamar sejajar:
 
 ```bash
 git clone --bare git@github.com:user/proyek.git proyek/.bare
@@ -61,7 +68,7 @@ git fetch origin
 git worktree add main main
 ```
 
-Susunan foldernya jadi bersih karena nggak ada lagi satu folder yang dianggap "repo utama":
+Susunan foldernya menjadi sangat rapi dan sejajar seperti ini:
 
 ```text
 proyek/
@@ -73,7 +80,7 @@ proyek/
 
 ## Tip tambahan
 
-Kalau kamu menaruh salah satu *worktree* di diska eksternal yang kadang dicabut, kunci dulu pakai `git worktree lock ../proyek-eksternal` supaya catatannya nggak ikut disapu waktu `git worktree prune` jalan.
+Jika kamu menaruh salah satu *worktree* di hard disk/SSD eksternal yang kadang dicabut dari laptop, kunci dulu catatannya dengan `git worktree lock ../proyek-eksternal` supaya catatannya tidak dianggap hilang dan ikut terhapus saat `git worktree prune` berjalan.
 
 ## Seri tips Git
 

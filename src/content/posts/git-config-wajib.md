@@ -6,11 +6,15 @@ tags: ["git", "tips", "config"]
 description: "Setelan ~/.gitconfig biar git pull, merge conflict, diff, dan push cabang baru nggak bikin kerja dua kali."
 ---
 
-Setelan bawaan Git itu sengaja kaku supaya skrip lama dari sepuluh tahun lalu nggak mendadak rusak. Kalau kamu pakai Git tiap hari di terminal, 16 baris di `~/.gitconfig` ini langsung memangkas banyak ketikan berulang: nggak perlu lagi nulis `-u origin` waktu *push* cabang baru, *diff* jadi lebih gampang dibaca saat fungsi pindah tempat, dan konflik *rebase* yang sama nggak perlu dibereskan dua kali.
+Waktu baru pertama kali menginstal Git, setelan bawaannya memang sengaja dibuat sangat "konservatif" supaya skrip-skrip lama dari sepuluh tahun lalu tidak rusak. Akibatnya, pemula sering direpotkan oleh hal-hal kecil—seperti harus mengetik perintah panjang saat mengirim *branch* baru ke server, atau bingung membaca tampilan kode yang bentrok (*merge conflict*).
+
+Kenapa ini penting? Dengan menambahkan 16 baris pengaturan di file `~/.gitconfig` (file catatan setelan Git yang berlaku untuk semua proyek di komputermu), kerja harianmu di terminal langsung jauh lebih nyaman. Kamu nggak perlu lagi mengetik `-u origin` tiap kali *push* *branch* baru, tampilan perbandingan kode (*diff*) jadi lebih enak dibaca, dan bentrokan kode yang sama nggak perlu dibereskan berulang kali.
 
 ## Cara pasang
 
-Kamu bisa pasang satu-satu lewat `git config --global <kunci> <nilai>`, atau langsung tempel ke berkas `~/.gitconfig`. Buat ngecek setelan mana saja yang aktif dan datangnya dari berkas mana:
+Kamu bisa memasangnya satu per satu lewat terminal dengan `git config --global <kunci> <nilai>`, atau langsung menempelkan blok konfigurasi lengkap di bagian bawah ke dalam file `~/.gitconfig`.
+
+Untuk mengecek setelan apa saja yang sedang aktif di komputermu dan berasal dari file mana, jalankan:
 
 ```bash
 git config --global <kunci> <nilai>
@@ -19,28 +23,30 @@ git config --global --list --show-origin
 
 ## Daftar setelan
 
+Berikut daftar 16 setelan yang direkomendasikan beserta efeknya:
+
 | Setelan | Nilai | Efeknya |
 |---|---|---|
-| `init.defaultBranch` | `main` | Cabang awal waktu `git init` langsung bernama `main`. |
-| `pull.rebase` | `true` | `git pull` otomatis *rebase*, nggak bikin *merge commit* tambahan. |
-| `rebase.autoStash` | `true` | Simpan perubahan lokal otomatis sebelum *rebase*, lalu kembalikan lagi sesudahnya. |
-| `rebase.autoSquash` | `true` | *Commit* bertanda `fixup!` dan `squash!` langsung disusun ke tempatnya waktu `rebase -i`. |
-| `rebase.updateRefs` | `true` | Cabang bertumpuk (*stacked branches*) ikut digeser waktu *rebase*. |
-| `push.autoSetupRemote` | `true` | *Push* cabang baru otomatis nyambung ke *upstream* tanpa `-u origin <cabang>`. |
-| `fetch.prune` | `true` | Bersihkan referensi `origin/*` lokal yang cabangnya sudah dihapus di server. |
-| `rerere.enabled` | `true` | Ingat cara kamu membereskan konflik supaya konflik yang sama dibereskan otomatis. |
-| `merge.conflictStyle` | `zdiff3` | Tampilkan isi asli (*base*) di tengah blok konflik. |
-| `diff.algorithm` | `histogram` | *Diff* lebih rapi waktu fungsi atau blok kode pindah posisi. |
-| `diff.colorMoved` | `default` | Kasih warna beda buat baris yang cuma pindah tempat vs baris yang beneran baru. |
-| `branch.sort` | `-committerdate` | `git branch` diurutkan dari cabang yang paling baru kamu sentuh. |
-| `tag.sort` | `version:refname` | Urutkan *tag* sebagai nomor versi (`v1.10` muncul sesudah `v1.9`, bukan sesudah `v1.1`). |
-| `column.ui` | `auto` | Daftar `git branch`, `tag`, dan `status` disusun per kolom mengikuti lebar terminal. |
-| `commit.verbose` | `true` | Tampilkan isi *diff* lengkap di bagian bawah editor waktu nulis pesan *commit*. |
-| `help.autocorrect` | `prompt` | Kalau salah ketik perintah, Git tanya dulu sebelum menjalankan tebakannya. |
+| `init.defaultBranch` | `main` | Jalur kerja awal (*branch*) saat bikin repo baru (`git init`) langsung bernama `main`. |
+| `pull.rebase` | `true` | Saat `git pull`, Git otomatis menyusun ulang simpanan lokalmu di atas pembaruan terbaru (*rebase*), bukan membuat *commit* penggabungan tambahan. |
+| `rebase.autoStash` | `true` | Menitipkan editan di meja kerja (*working tree*) ke laci sementara (*stash*) secara otomatis sebelum *rebase*, lalu mengembalikannya setelah selesai. |
+| `rebase.autoSquash` | `true` | *Commit* bertanda `fixup!` dan `squash!` otomatis dirapikan ke posisinya saat melakukan `rebase -i`. |
+| `rebase.updateRefs` | `true` | *Branch* yang saling bertumpuk (*stacked branches*) ikut digeser otomatis saat kamu melakukan *rebase*. |
+| `push.autoSetupRemote` | `true` | Mengirim (*push*) *branch* baru ke server langsung tersambung otomatis tanpa perlu mengetik `-u origin <cabang>`. |
+| `fetch.prune` | `true` | Membersihkan catatan `origin/*` di komputermu kalau *branch* tersebut sudah dihapus di server. |
+| `rerere.enabled` | `true` | Mengingat cara kamu membereskan *merge conflict*, supaya kalau bentrokan yang sama muncul lagi, Git membereskannya otomatis. |
+| `merge.conflictStyle` | `zdiff3` | Menampilkan versi kode asli (*base*) di tengah blok bentrokan agar kamu tahu perubahan asalnya dari mana. |
+| `diff.algorithm` | `histogram` | Tampilan perbandingan kode (*diff*) lebih rapi saat ada fungsi atau blok kode yang dipindah posisi. |
+| `diff.colorMoved` | `default` | Memberi warna berbeda untuk baris kode yang cuma pindah tempat vs baris yang benar-benar baru ditulis. |
+| `branch.sort` | `-committerdate` | Daftar `git branch` diurutkan dari *branch* yang paling baru kamu kerjakan. |
+| `tag.sort` | `version:refname` | Mengurutkan *tag* berdasarkan nomor versi yang benar (`v1.10` muncul setelah `v1.9`, bukan setelah `v1.1`). |
+| `column.ui` | `auto` | Daftar `git branch`, `tag`, dan `status` disusun rapi per kolom mengikuti lebar terminalmu. |
+| `commit.verbose` | `true` | Menampilkan rincian perubahan kode (*diff*) di bagian bawah editor saat kamu menulis pesan *commit*. |
+| `help.autocorrect` | `prompt` | Kalau kamu salah ketik perintah Git, Git akan bertanya dulu sebelum menjalankan tebakannya. |
 
 ## Versi siap salin
 
-Tempel blok ini ke `~/.gitconfig`:
+Cara paling cepat, salin dan tempel blok di bawah ini ke dalam file `~/.gitconfig`:
 
 ```ini
 [init]
@@ -76,13 +82,17 @@ Tempel blok ini ke `~/.gitconfig`:
 
 ## Tiga setelan yang paling terasa bedanya
 
+Dari 16 setelan di atas, tiga setelan ini biasanya paling cepat terasa manfaatnya buat pemula:
+
 ### `rerere`
 
-`rerere` (*reuse recorded resolution*) merekam bentuk kode sebelum dan sesudah kamu membereskan konflik. Kalau kamu lagi *rebase* cabang panjang yang terdiri dari belasan *commit*, atau ngetes gabung cabang berulang kali, Git langsung menerapkan perbaikan yang sudah pernah kamu tulis tanpa minta diedit manual lagi.
+`rerere` (*reuse recorded resolution*) berfungsi seperti ingatan otomatis untuk membereskan bentrokan kode (*merge conflict*). Saat dua jalur kerja mengubah baris yang sama, Git akan merekam bagaimana cara kamu menyelesaikannya pertama kali. Kalau nanti kamu melakukan *rebase* pada *branch* panjang atau menggabungkan *branch* berulang kali dan bertemu bentrokan yang sama persis, Git langsung menerapkan solusi yang tadi sudah kamu pilih tanpa menyuruhmu mengedit manual lagi.
 
 ### `zdiff3`
 
-Tampilan konflik bawaan Git cuma ngasih lihat versi `HEAD` dan versi cabang lawan. Masalahnya, kita sering lupa kode aslinya kayak apa sebelum dua-duanya mengubah baris itu. Dengan `zdiff3`, Git menyelipkan blok `|||||||` berisi kode awal (*common ancestor*) dan mengeluarkan baris yang kembar di kedua sisi dari penanda konflik:
+Secara bawaan, saat terjadi *merge conflict*, Git hanya menunjukkan dua versi: kodemu sekarang (`HEAD` — penunjuk posisi kita saat ini) dan kode dari *branch* lawan. Masalahnya, kita sering lupa kode aslinya seperti apa sebelum kalian berdua mengeditnya.
+
+Dengan `zdiff3`, Git menambahkan bagian tengah bertanda `|||||||` yang berisi kode asli sebelum diubah (*common ancestor*), dan mengeluarkan baris yang kembar di kedua sisi dari penanda konflik:
 
 ```text
   <<<<<<< HEAD
@@ -94,13 +104,13 @@ Tampilan konflik bawaan Git cuma ngasih lihat versi `HEAD` dan versi cabang lawa
   >>>>>>> feature/search-bar
 ```
 
-Begitu lihat aslinya `150`, langsung kelihatan kalau satu sisi menaikkan jeda *debounce* jadi 250 ms dan sisi lain menaikkan jadi 400 ms.
+Begitu melihat aslinya adalah `150`, langsung jelas konteksnya: satu sisi menaikkan jeda *debounce* jadi `250`, dan sisi lain menaikkan jadi `400`. Menentukan mana yang harus dipakai jadi jauh lebih mudah.
 
 ### `push.autoSetupRemote`
 
-Biasanya waktu habis bikin cabang baru lalu ketik `git push`, Git nolak dan nyuruh kamu mengulang dengan `git push --set-upstream origin nama-cabang`. Begitu `push.autoSetupRemote = true` aktif, cukup `git push` sekali dan Git otomatis membuat sekaligus menyambungkan cabang yang sama di server.
+Biasanya, setelah membuat *branch* baru lalu mengetik `git push`, Git menolak dan menyuruhmu mengulang dengan perintah panjang `git push --set-upstream origin nama-cabang` supaya jalur lokalmu tersambung dengan jalur di server (*remote*). Dengan menyalakan `push.autoSetupRemote = true`, kamu cukup mengetik `git push` sekali saja, dan Git otomatis membuat sekaligus menyambungkan *branch* tersebut di server.
 
-Catatan versi: `merge.conflictStyle = zdiff3` butuh Git 2.35 ke atas, `push.autoSetupRemote` butuh Git 2.37 ke atas, dan `rebase.updateRefs` butuh Git 2.38 ke atas. Cek versi di mesinmu lewat `git --version`.
+> **Catatan versi:** Beberapa setelan di atas butuh Git versi cukup baru: `merge.conflictStyle = zdiff3` butuh Git 2.35 ke atas, `push.autoSetupRemote` butuh Git 2.37 ke atas, dan `rebase.updateRefs` butuh Git 2.38 ke atas. Kamu bisa mengecek versi Git di komputermu lewat perintah `git --version`.
 
 ## Seri tips Git
 

@@ -6,21 +6,23 @@ tags: ["git", "tips", "config", "ssh"]
 description: "Biar email dan SSH key otomatis ganti sendiri sesuai folder repo, nggak ada lagi cerita salah pakai email waktu commit."
 ---
 
-Salah satu kejadian paling nyebelin waktu pakai satu laptop buat kerja sekaligus proyek sampingan: baru sadar *commit* di repo kantor tercatat pakai email pribadi sesudah belasan *commit* naik ke server. Daripada mengandalkan ingatan buat ngetik `git config user.email` tiap habis *clone* repo baru, pakai saja `includeIf` di `~/.gitconfig` supaya email dan *SSH key* otomatis menyesuaikan folder tempat repo itu disimpan.
+Jika kamu memakai satu laptop yang sama untuk proyek kantor sekaligus proyek pribadi/belajar, ada satu kejadian klasik yang sering bikin kesal: baru sadar semua *commit* di repositori kantor tercatat memakai email pribadi—atau gagal `git push` karena SSH menggunakan akun GitHub yang salah!
 
-## Pisahkan dulu foldernya
+Daripada mengandalkan ingatan untuk mengetik `git config user.email` setiap kali baru melakukan `git clone`, kamu bisa memanfaatkan fitur **`includeIf`** di file `~/.gitconfig`. Dengan `includeIf`, Git otomatis mengganti nama, alamat email, dan kunci SSH menyesuaikan folder tempat proyek itu disimpan.
 
-Taruh semua repo kantor dan repo pribadi di dua folder induk yang terpisah:
+## 1. Pisahkan proyek kantor dan pribadi ke dua folder induk
+
+Langkah pertamanya sederhana: rapikan letak folder proyek di laptopmu ke dalam dua folder induk yang jelas terpisah, misalnya:
 
 ```text
 ~/
-├── Projects/   # semua repo pribadi & open-source
+├── Projects/   # semua repo pribadi & latihan
 └── Work/       # semua repo kantor
 ```
 
-## Cara mengaturnya
+## 2. Atur konfigurasi utama dan konfigurasi khusus kantor
 
-Di `~/.gitconfig` utama, tulis identitas pribadi sebagai setelan bawaan, lalu tambahkan blok `includeIf` di bagian bawahnya:
+Di file konfigurasi global utama `~/.gitconfig`, tulis identitas pribadimu sebagai setelan bawaan, lalu tambahkan syarat `includeIf` di bagian bawahnya:
 
 ```ini
 [user]
@@ -31,7 +33,9 @@ Di `~/.gitconfig` utama, tulis identitas pribadi sebagai setelan bawaan, lalu ta
 	path = ~/.gitconfig-work
 ```
 
-Habis itu, bikin berkas baru `~/.gitconfig-work` khusus buat urusan kantor:
+Artinya dalam bahasa manusia: *"Secara bawaan pakai email pribadiku; tetapi **jika** repositori ini berada di dalam folder `~/Work/`, baca juga setelan tambahan dari file `~/.gitconfig-work`."*
+
+Selanjutnya, buat file baru bernama `~/.gitconfig-work` khusus untuk urusan kantor:
 
 ```ini
 [user]
@@ -42,39 +46,43 @@ Habis itu, bikin berkas baru `~/.gitconfig-work` khusus buat urusan kantor:
 	sshCommand = ssh -i ~/.ssh/id_ed25519_work -o IdentitiesOnly=yes
 ```
 
-Opsi `-o IdentitiesOnly=yes` di situ penting supaya SSH langsung menyodorkan kunci `id_ed25519_work` dan nggak mencoba kunci pribadi yang kebetulan lagi nongkrong di `ssh-agent`.
+Catatan penting tentang baris `sshCommand`:
+- `-i ~/.ssh/id_ed25519_work`: menunjuk file kunci SSH khusus kantor.
+- `-o IdentitiesOnly=yes`: memastikan SSH **hanya** menyodorkan kunci kantor tersebut dan tidak mencoba kunci pribadi yang kebetulan sedang aktif di `ssh-agent` (pengelola kunci SSH di latar belakang).
 
-## Empat jebakan yang sering bikin aturan nggak jalan
+## 3. Empat jebakan yang sering membuat `includeIf` tidak bekerja
 
-1. **Garis miring di ujung `~/Work/` jangan sampai ketinggalan.** Tanda `/` di akhir bikin Git otomatis menambahkan `**` di belakangnya, jadi semua subfolder di dalam `~/Work/` ikut kena aturan. Tanpa garis miring penutup, subfoldernya malah dicuekin.
-2. **Huruf besar-kecil di macOS dan Windows.** Karena sistem berkas bawaan macOS dan Windows nggak membedakan huruf besar-kecil, kalau kamu kadang masuk folder lewat `~/work/` (huruf kecil), ganti syaratnya jadi `gitdir/i:~/Work/` supaya tetap cocok.
-3. **Taruh `includeIf` di bawah `[user]` bawaan.** Git membaca konfigurasi dari atas ke bawah dan memakai nilai yang paling akhir ditemukan. Kalau `includeIf` ditaruh di baris paling atas, nilainya bakal ketimpa lagi sama `[user]` pribadi di bawahnya.
-4. **Waktu pertama kali `git clone`.** Saat perintah `git clone` baru mulai jalan, folder `.git` lokal belum terbentuk sehingga aturan `gitdir` belum aktif. Kalau repo kantornya tertutup dan butuh *SSH key* kantor sejak proses *clone*, jalankan *clone* sambil menyertakan variabel lingkungan sementara (atau daftarkan alias *host* di `~/.ssh/config`):
+1. **Garis miring (`/`) di akhir `~/Work/` wajib ditulis.** Tanda `/` di ujung itu membuat Git otomatis menganggap semua subfolder di dalam `~/Work/` ikut terkena aturan. Tanpa garis miring penutup, folder proyek di dalamnya tidak akan cocok!
+2. **Perbedaan huruf besar-kecil di macOS dan Windows.** Sistem berkas bawaan macOS dan Windows tidak membedakan huruf besar-kecil. Jika kamu kadang masuk lewat `~/work/` (huruf kecil), tambahkan `/i` (`gitdir/i:~/Work/`) agar pencocokan tidak mempedulikan huruf kapital.
+3. **Taruh blok `includeIf` di bawah `[user]` bawaan.** Git membaca file konfigurasi dari atas ke bawah dan memakai nilai yang paling akhir dibaca. Kalau `includeIf` diletakkan di bagian paling atas, nilainya akan tertimpa kembali oleh `[user]` pribadi di bawahnya.
+4. **Saat pertama kali menjalankan `git clone`.** Ketika perintah `git clone` baru mulai jalan, folder `.git` lokal belum terbentuk di komputermu sehingga aturan `gitdir` belum sempat aktif. Jika repo kantormu bersifat privat dan langsung membutuhkan SSH key kantor saat `git clone`, sertakan variabel lingkungan `GIT_SSH_COMMAND` sementara di awal perintah (atau buat alias *host* di `~/.ssh/config`):
 
 ```bash
 GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_work -o IdentitiesOnly=yes" git clone git@github.com:kantor/layanan.git
 ```
 
-## Alternatif: cocokkan dari alamat remote
+## 4. Alternatif: cocokkan berdasarkan URL server (*remote*)
 
-Sejak Git 2.36, kamu juga bisa memasang syarat berdasarkan URL *remote* tanpa peduli repo itu ditaruh di folder mana:
+Sejak Git versi 2.36, kamu juga bisa memasang aturan berdasarkan alamat server (*remote* URL), tidak peduli di folder mana repositori itu ditaruh:
 
 ```ini
 [includeIf "hasconfig:remote.*.url:git@github.com:kantor/**"]
 	path = ~/.gitconfig-work
 ```
 
-Cara ini kepakai kalau ada repo kantor yang terpaksa ditaruh di luar `~/Work/`. Catatannya cuma satu: aturan baru menyala sesudah *remote* `origin` terdaftar di repo itu.
+Ini cocok kalau kamu kadang menyimpan proyek kantor di luar folder `~/Work/`. Satu catatannya: aturan ini baru mulai bekerja setelah *remote* `origin` terdaftar di dalam repo tersebut.
 
-## Cara ngetesnya
+## 5. Cara mengetesnya
 
-Masuk ke salah satu repo di dalam `~/Work/`, lalu cek apakah email dan perintah SSH yang aktif memang diambil dari `~/.gitconfig-work`:
+Masuk ke salah satu folder proyek di dalam `~/Work/`, lalu pastikan Git benar-benar membaca email dan perintah SSH dari file `~/.gitconfig-work`:
 
 ```bash
 git config --show-origin user.email
 git config --show-origin core.sshCommand
 ssh -i ~/.ssh/id_ed25519_work -T git@github.com
 ```
+
+Opsi `--show-origin` akan menampilkan dari file mana setelan itu berasal, sedangkan perintah `ssh -T` mengetes apakah kunci kantormu diterima dengan benar oleh GitHub.
 
 ## Seri tips Git
 
