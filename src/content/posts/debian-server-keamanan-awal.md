@@ -1,5 +1,5 @@
 ---
-title: "Mengamankan VPS Debian 13 baru: urutan langkah awal yang aman"
+title: "Mengamankan VPS Debian 13 baru: urutan langkah awal"
 date: 2026-11-11T21:00:00+07:00
 categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "vps", "sudo", "ssh"]

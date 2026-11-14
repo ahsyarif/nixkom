@@ -11,7 +11,9 @@ export const getStaticPaths = (async ({ paginate }) => {
 }) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
+const n = page.currentPage;
 ---
-<Base>
+<Base title={n > 1 ? `Halaman ${n}` : undefined} description={n > 1 ? `${SITE.description} Halaman ${n}.` : undefined}>
+  <h1 class="sr-only">{SITE.title}: {SITE.tagline}</h1>
   <PostList posts={page.data} prevUrl={page.url.prev} nextUrl={page.url.next} current={page.currentPage} total={page.lastPage} />
 </Base>

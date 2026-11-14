@@ -1,5 +1,5 @@
 ---
-title: "Disk Penuh (No space left on device): Bersihkan Aman Tanpa Merusak Sistem"
+title: "No space left on device: bersihkan disk server dengan aman"
 date: 2026-11-14T16:36:00+07:00
 categories:
   - Linux
@@ -12,7 +12,7 @@ tags:
   - logs
   - troubleshooting
   - pemula
-description: "Cara mengatasi error No space left on device di server Linux dengan aman: melacak folder besar, membersihkan cache apt/journal/Docker tanpa menghapus volume, mengatasi inode 100%, dan truncate file log aktif."
+description: "Atasi No space left on device: lacak folder besar, bersihkan cache apt, journal, dan Docker tanpa hapus volume, lalu tangani inode 100% dan log aktif."
 ---
 
 Ketika disk server Linux mencapai **100% penuh**, efek dominonya langsung terasa: database berhenti menerima transaksi baru, Docker gagal menarik image, sesi login SSH bahkan bisa error karena tidak mampu membuat file sementara, dan `apt upgrade` gagal di tengah jalan.

@@ -1,5 +1,5 @@
 ---
-title: "Cara Terbaik Membackup Linux Server untuk Pemula (Prinsip 3-2-1 hingga Uji Restore)"
+title: "Backup server Linux untuk pemula: 3-2-1 dan uji restore"
 date: 2026-11-14T16:30:00+07:00
 categories:
   - Linux
@@ -14,7 +14,7 @@ tags:
   - keamanan
   - pemula
   - postgresql
-description: "Panduan lengkap memilih strategi backup server Linux terbaik bagi pemula: aturan 3-2-1, kesalahan umum snapshot vs database dump, setup otomatis restic ke cloud object storage, dan cara menguji restore."
+description: "Strategi backup server Linux untuk pemula: aturan 3-2-1, beda snapshot dan dump database, restic otomatis ke object storage, lalu uji restore."
 ---
 
 Jika suatu hari VPS-mu mendadak tidak bisa diakses—entah karena salah menjalankan perintah `rm`, update yang merusak sistem, serangan ransomware, atau bahkan akun penyedia cloud terkena *suspend*—satu-satunya hal yang menentukan apakah proyekmu bisa selamat atau tamat adalah **backup**.

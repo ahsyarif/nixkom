@@ -1,5 +1,5 @@
 ---
-title: Mengenal Docker & Gambaran Alur Development dari Laptop ke VPS
+title: "Mengenal Docker dan alur development dari laptop ke VPS"
 date: 2026-11-14T11:00:00+07:00
 categories:
   - DevOps
@@ -13,7 +13,7 @@ tags:
   - cicd
   - vps
   - pemula
-description: Memahami kenapa Docker menyelesaikan masalah klasik perbedaan laptop dan server, serta peta lengkap alur development modern dari lokal ke VPS menggunakan Git, GitHub, CI, dan CD.
+description: "Kenapa Docker mengatasi masalah klasik beda laptop dan server, plus peta alur development dari lokal ke VPS lewat Git, GitHub, CI, dan CD."
 ---
 
 Hampir semua developer pemula pernah mengalami momen menyebalkan ini:

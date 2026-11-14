@@ -1,5 +1,5 @@
 ---
-title: Pasang Tailscale di Server Linux Pakai Tag & Auth Key (Bukan Akun Pribadi)
+title: "Daftarkan server Linux ke Tailscale dengan tag dan auth key"
 date: 2026-11-14T10:01:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - auth-key
   - tags
   - pemula
-description: Cara mendaftarkan server Linux ke Tailscale secara aman memakai tagOwners dan auth key agar server memiliki identitas mandiri, bukan menempel ke akun pribadi admin.
+description: "Daftarkan server Linux ke Tailscale dengan tagOwners dan auth key agar server punya identitas sendiri, tidak menempel ke akun pribadi admin."
 ---
 
 Di [artikel pengenalan Tailscale untuk pemula](/posts/tailscale-debian-pemula/), cara termudah menyambungkan server Linux adalah menjalankan `sudo tailscale up`, lalu membuka tautan login di browser memakai akun Google atau GitHub pribadimu.

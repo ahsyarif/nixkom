@@ -1,5 +1,5 @@
 ---
-title: Pemantauan, Audit Log, Pencabutan Akses, & Akses Darurat (Break-Glass)
+title: "Audit Tailscale, cabut akses, dan akses darurat break-glass"
 date: 2026-11-14T10:06:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - keamanan
   - pemulihan
   - pemula
-description: Menyiapkan audit log Tailscale, prosedur cepat mencabut akses saat perangkat hilang atau auth key bocor, serta merancang akses darurat agar tidak pernah terkunci dari server.
+description: "Siapkan audit log Tailscale, prosedur cabut akses saat perangkat hilang atau auth key bocor, dan akses darurat agar tidak terkunci dari server."
 ---
 
 Keamanan server bukan pekerjaan sekali pasang lalu dilupakan. Setelah arsitektur Tailscale, firewall UFW, SSH Check Mode, Grants, dan Serve terpasang di Bagian 1 sampai Bagian 6, pertanyaan terpenting berikutnya adalah:

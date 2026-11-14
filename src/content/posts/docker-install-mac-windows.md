@@ -9,7 +9,7 @@ tags:
   - wsl2
   - macos
   - pemula
-description: Tutorial memasang Docker di Windows 10/11 menggunakan WSL 2 dan di macOS (Apple Silicon maupun Intel), beserta tips krusial agar performa file lokal tetap cepat.
+description: "Pasang Docker di Windows 10/11 lewat WSL 2 dan di macOS (Apple Silicon atau Intel), plus tips agar akses file proyek lokal tetap cepat."
 ---
 
 Di Linux, Docker berjalan langsung di atas kernel Linux host. Namun bagaimana dengan **Windows** dan **macOS**?

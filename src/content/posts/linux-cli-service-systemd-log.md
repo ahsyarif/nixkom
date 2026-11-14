@@ -1,5 +1,5 @@
 ---
-title: Mengelola Service dengan systemctl & Investigasi Error di journalctl
+title: "Kelola service dengan systemctl, lacak error di journalctl"
 date: 2026-11-14T12:23:00+07:00
 categories:
   - Linux

@@ -1,5 +1,5 @@
 ---
-title: Membaca Config, Pipe, Redirection, & Trik Edit File di Server
+title: "Baca config, pipe, redirection, dan trik edit file di server"
 date: 2026-11-14T12:21:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - nano
   - tips
   - pemula
-description: Cara membaca file log besar dengan less dan tail, menyambungkan perintah memakai pipe (|), membedakan > dan >> beserta sudo tee, serta trik backup instan sebelum mengedit config.
+description: "Baca log besar dengan less dan tail, sambungkan perintah lewat pipe, bedakan > dan >> serta sudo tee, lalu backup cepat sebelum edit config."
 ---
 
 Salah satu kesalahan paling umum pemula saat mengecek log di server adalah mengetik `cat /var/log/nginx/access.log`. Jika file log tersebut berukuran ratusan megabyte, terminal akan kebanjiran ribuan baris teks selama beberapa menit sampai sulit dibaca!

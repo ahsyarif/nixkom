@@ -1,5 +1,5 @@
 ---
-title: "Firewall UFW di Debian 13: aktifkan tanpa mengunci diri sendiri"
+title: "Firewall UFW di Debian 13: aktifkan tanpa mengunci diri"
 date: 2026-11-11T21:02:00+07:00
 categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "ufw", "firewall"]

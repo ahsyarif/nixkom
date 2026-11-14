@@ -1,5 +1,5 @@
 ---
-title: "Membatalkan Request Fetch Lama di React dengan AbortController"
+title: "Batalkan request fetch lama di React dengan AbortController"
 date: 2026-11-05T14:30:00+07:00
 categories: ["Frontend"]
 tags: ["frontend", "react", "typescript", "performance"]

@@ -15,7 +15,7 @@ tags:
   - ssh
   - rollback
   - pemula
-description: Menyambungkan pipeline GitHub Actions ke VPS Linux untuk deploy otomatis Docker Compose dari GHCR secara aman, termasuk opsi jalur privat Tailscale dan cara rollback 1 menit.
+description: "Hubungkan GitHub Actions ke VPS Linux untuk deploy Docker Compose otomatis dari GHCR, dengan opsi jalur privat Tailscale dan rollback 1 menit."
 ---
 
 Di bagian penutup seri ini, kita akan melengkapi langkah terakhir: begitu **CI** selesai mem-build Docker image baru dan mengirimkannya ke **`ghcr.io`**, GitHub Actions akan otomatis masuk ke VPS Linux-mu untuk menarik image tersebut (`pull`) dan menjalankan container terbaru tanpa kamu harus SSH manual setiap kali deploy.

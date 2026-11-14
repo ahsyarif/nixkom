@@ -1,5 +1,5 @@
 ---
-title: "Cek Kesehatan Server: Pantau CPU, RAM, & Disk Penuh dengan Cepat"
+title: "Cek kesehatan server Linux: pantau CPU, RAM, dan disk"
 date: 2026-11-14T12:22:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - ram
   - tips
   - pemula
-description: Cara mendiagnosis VPS yang lambat atau penuh dalam hitungan detik memakai uptime, htop, free -h, df -ih, du, dan lsof +L1 untuk file terhapus yang masih menahan ruang disk.
+description: "Diagnosis VPS yang lambat atau penuh dengan uptime, htop, free -h, df -ih, du, dan lsof +L1 untuk file terhapus yang masih memakan ruang disk."
 ---
 
 Suatu hari aplikasimu mendadak terasa sangat lambat, database gagal menyimpan data, atau proses deploy macet dengan error *"No space left on device"*.

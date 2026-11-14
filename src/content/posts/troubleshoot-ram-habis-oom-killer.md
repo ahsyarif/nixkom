@@ -1,5 +1,5 @@
 ---
-title: "Aplikasi Mati Mendadak karena RAM Habis (OOM Killer) & Cara Setup Swap"
+title: "Aplikasi mati mendadak karena OOM Killer dan cara setup swap"
 date: 2026-11-14T16:37:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - docker
   - troubleshooting
   - pemula
-description: "Cara membuktikan apakah aplikasi server yang mati mendadak dibunuh oleh Linux OOM Killer memakai dmesg/journalctl, serta langkah memasang file Swap dan membatasi memori aplikasi di VPS kecil."
+description: "Buktikan aplikasi yang mati mendadak dibunuh OOM Killer lewat dmesg dan journalctl, lalu pasang swap dan batasi memori aplikasi di VPS kecil."
 ---
 
 Gejalanya sangat menjengkelkan: tidak ada pesan exception di log aplikasi Node.js atau Python-mu, tetapi proses aplikasi atau database MySQL/PostgreSQL tiba-tiba berhenti sendiri begitu ada lonjakan traffic atau saat menjalankan perintah build. Bahkan terkadang seluruh VPS ikut membeku sampai harus di-reboot dari panel provider.

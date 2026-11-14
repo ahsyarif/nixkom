@@ -1,5 +1,5 @@
 ---
-title: "Bangun Pipeline CI dengan GitHub Actions: Tes & Build Image ke GHCR"
+title: "CI GitHub Actions: tes otomatis dan push image ke GHCR"
 date: 2026-11-14T11:05:00+07:00
 categories:
   - DevOps
@@ -11,7 +11,7 @@ tags:
   - ci
   - ghcr
   - pemula
-description: Tutorial membuat pipeline Continuous Integration (CI) menggunakan GitHub Actions untuk menjalankan test otomatis pada Pull Request serta mem-build dan push Docker image ke GHCR saat merge ke main.
+description: "Buat pipeline CI di GitHub Actions yang menjalankan tes di setiap Pull Request, lalu build dan push image Docker ke GHCR saat merge ke main."
 ---
 
 Sekarang kita masuk ke inti **CI (Continuous Integration)**: setiap kali kamu membuka **Pull Request** atau meng-merge kode ke **`main`**, GitHub otomatis menyewakan komputer virtual (*runner* Ubuntu) gratis sementara untuk mengecek kodemu, memastikan `Dockerfile` bisa di-build tanpa error, dan menerbitkan Docker image siap pakai ke **`ghcr.io`**.

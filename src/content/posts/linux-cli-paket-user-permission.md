@@ -14,7 +14,7 @@ tags:
   - user
   - tips
   - pemula
-description: Trik praktis mengelola paket apt dan dnf di server, membuat dan mengamankan user sudo lewat visudo, serta memperbaiki masalah kepemilikan dan permission file tanpa memakai chmod 777.
+description: "Kelola paket apt dan dnf, buat user sudo yang aman lewat visudo, lalu perbaiki kepemilikan dan permission file tanpa memakai chmod 777."
 ---
 
 Saat mengelola VPS, ada tiga hal administratif yang sering terasa sensitif bagi pemula: memperbarui paket OS tanpa merusak sistem, mengatur user beserta hak `sudo`, dan memperbaiki error *"Permission denied"* pada folder web/upload tanpa tergoda jalan pintas berbahaya.

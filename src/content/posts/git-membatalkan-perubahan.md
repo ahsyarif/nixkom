@@ -1,5 +1,5 @@
 ---
-title: "Salah commit atau salah edit? Cara membatalkan perubahan di Git"
+title: "Salah commit atau salah edit? Cara membatalkan perubahan Git"
 date: 2026-11-11T13:00:00+07:00
 categories: ["Git"]
 tags: ["git", "tips", "pemula"]

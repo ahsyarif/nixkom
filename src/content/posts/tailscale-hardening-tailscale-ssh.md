@@ -1,5 +1,5 @@
 ---
-title: Masuk Server Tanpa Ribet Kunci Manual dengan Tailscale SSH & Check Mode
+title: "Tailscale SSH dan Check Mode: SSH tanpa kelola kunci manual"
 date: 2026-11-14T10:03:00+07:00
 categories:
   - Linux
@@ -12,7 +12,7 @@ tags:
   - ssh
   - keamanan
   - pemula
-description: Mengaktifkan Tailscale SSH dan Check Mode di server Linux untuk autentikasi SSH berbasis identitas tailnet tanpa mengelola authorized_keys manual, sekaligus menjaga akses darurat.
+description: "Aktifkan Tailscale SSH dan Check Mode di server Linux untuk login berbasis identitas tailnet tanpa mengelola authorized_keys, dengan akses darurat tetap siap."
 ---
 
 Di [artikel akses SSH lewat Tailscale](/posts/tailscale-ssh-debian/), kita memindahkan jalur OpenSSH biasa ke IP Tailscale supaya tidak terbuka ke internet. Itu sudah sangat bagus—tetapi di dalam tiap server, kamu masih harus menyalin file kunci publik `~/.ssh/authorized_keys` secara manual untuk setiap laptop dan setiap anggota tim, serta menghapusnya satu per satu saat ada anggota yang keluar.

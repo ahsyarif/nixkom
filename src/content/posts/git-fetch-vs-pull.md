@@ -1,5 +1,5 @@
 ---
-title: "Beda git fetch dan git pull: intip perubahan server sebelum digabung"
+title: "Beda git fetch dan git pull: cek perubahan sebelum digabung"
 date: 2026-11-11T19:00:00+07:00
 categories: ["Git"]
 tags: ["git", "tips", "pemula"]

@@ -1,5 +1,5 @@
 ---
-title: Trik Navigasi Terminal & Manajemen File Cepat di Server Linux
+title: "Trik navigasi terminal dan kelola file cepat di server Linux"
 date: 2026-11-14T12:20:00+07:00
 categories:
   - Linux
@@ -12,7 +12,7 @@ tags:
   - vps
   - tips
   - pemula
-description: Kumpulan trik navigasi terminal, shortcut keyboard Bash, pencarian file dengan find dan grep, serta arsip tar agar pengelolaan server Linux jauh lebih cepat dan bebas salah ketik.
+description: "Trik navigasi terminal, shortcut Bash, cari file dengan find dan grep, serta arsip tar agar kerja di server Linux lebih cepat dan minim salah ketik."
 ---
 
 Saat baru mengelola server Linux lewat SSH, kebanyakan pemula merasa terminal itu kaku: harus mengetik path panjang berulang-ulang, menekan tombol panah atas puluhan kali untuk mencari perintah kemarin, atau pusing mencari file konfigurasi di dalam folder `/etc`.

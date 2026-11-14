@@ -1,5 +1,5 @@
 ---
-title: "Menjalankan Tugas Otomatis (cron vs systemd timer) & Kebiasaan Aman"
+title: "Tugas otomatis di Linux: cron vs systemd timer"
 date: 2026-11-14T12:26:00+07:00
 categories:
   - Linux
@@ -12,7 +12,7 @@ tags:
   - automation
   - tips
   - pemula
-description: Cara menjadwalkan skrip otomatis di server Linux dengan cron dan systemd timer tanpa jebakan PATH atau proses bertumpuk, ditutup dengan 5 kebiasaan emas admin server.
+description: "Jadwalkan skrip di server Linux dengan cron dan systemd timer tanpa jebakan PATH atau proses bertumpuk, ditutup 5 kebiasaan aman admin server."
 ---
 
 Setelah terbiasa mengoperasikan server lewat terminal, langkah berikutnya agar hidupmu lebih tenang adalah menyerahkan tugas rutin berulang—seperti backup harian, membersihkan cache lama, atau mengecek kesehatan layanan—kepada penjadwal otomatis di Linux.

@@ -2,18 +2,19 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 
 export const SITE = {
   title: 'nixkom.id',
-  tagline: 'Systems, Linux/Nix, and networking notes',
+  tagline: 'Catatan sistem, Linux/Nix, dan jaringan',
+  description: 'Panduan praktis berbahasa Indonesia tentang server Linux, Debian, NixOS, Docker, Git, Tailscale, dan jaringan, dari pemula sampai admin server.',
   author: 'Ahmad',
   github: 'https://github.com/nixkom',
   pageSize: 10,
 };
 
 export const MENU = [
-  { id: 'home', name: 'HOME', url: '/' },
-  { id: 'categories', name: 'CATEGORIES', url: '/categories/' },
-  { id: 'tags', name: 'TAGS', url: '/tags/' },
-  { id: 'archives', name: 'ARCHIVES', url: '/archives/' },
-  { id: 'about', name: 'ABOUT', url: '/about/' },
+  { id: 'home', name: 'BERANDA', url: '/' },
+  { id: 'categories', name: 'KATEGORI', url: '/categories/' },
+  { id: 'tags', name: 'TAG', url: '/tags/' },
+  { id: 'archives', name: 'ARSIP', url: '/archives/' },
+  { id: 'about', name: 'TENTANG', url: '/about/' },
 ];
 
 export type Post = CollectionEntry<'posts'>;
@@ -29,7 +30,7 @@ export const slug = (s: string) => s.trim().toLowerCase().replace(/\s+/g, '-');
 export const postUrl = (p: Post) => `/posts/${p.id}/`;
 
 export const fmtDate = (d: Date) =>
-  d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Jakarta' });
+  d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
 export const isoDate = (d: Date) => d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
 
 const words = (body = '') => body.split(/\s+/).filter(Boolean).length;

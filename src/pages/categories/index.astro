@@ -5,19 +5,19 @@ import { getPosts, terms, postUrl, fmtDate, isoDate } from '../../lib/site';
 
 const cats = terms(await getPosts(), 'categories');
 ---
-<Base title="Categories">
-  <h1 class="dynamic-title">Categories</h1>
+<Base title="Kategori" description={`Semua kategori di nixkom.id: ${cats.map((c) => c.name).join(', ')}.`}>
+  <h1 class="dynamic-title">Kategori</h1>
   <div class="category-list">
-    {cats.length === 0 && <p class="muted">No categories yet.</p>}
+    {cats.length === 0 && <p class="muted">Belum ada kategori.</p>}
     {cats.map((c) => (
       <div class="category-card">
         <div class="category-card-header">
           <span>
             <Icon name="folder" />
             <a href={`/categories/${c.slug}/`}>{c.name}</a>
-            <span class="muted small-text">{c.posts.length} {c.posts.length === 1 ? 'post' : 'posts'}</span>
+            <span class="muted small-text">{c.posts.length} artikel</span>
           </span>
-          <a href={`/categories/${c.slug}/`} class="category-trigger" aria-label={`View ${c.name}`}><Icon name="chevron" size={15} /></a>
+          <a href={`/categories/${c.slug}/`} class="category-trigger" aria-label={`Lihat kategori ${c.name}`}><Icon name="chevron" size={15} /></a>
         </div>
         <ul class="category-posts plain-list">
           {c.posts.slice(0, 5).map((p) => (

@@ -1,5 +1,5 @@
 ---
-title: Amankan Database & Dashboard Internal dengan Loopback + Tailscale Serve
+title: "Database dan dashboard internal aman lewat Tailscale Serve"
 date: 2026-11-14T10:05:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - database
   - keamanan
   - docker
-description: Cara menutup akses internet ke PostgreSQL, Redis, Grafana, dan panel admin dengan mengikatnya ke 127.0.0.1 lalu mengeksposnya secara aman memakai Tailscale Serve dan Grants.
+description: "Tutup akses internet ke PostgreSQL, Redis, Grafana, dan panel admin dengan bind ke 127.0.0.1, lalu buka dengan aman lewat Tailscale Serve dan grants."
 ---
 
 Sebagian besar kebocoran data pada server pemula bukan terjadi karena peretas memecahkan enkripsi canggih, melainkan karena hal sepele: **memasang database atau dashboard admin (PostgreSQL, Redis, Portainer, Grafana, pgAdmin, atau n8n) lalu membiarkannya terbuka di `0.0.0.0`**.

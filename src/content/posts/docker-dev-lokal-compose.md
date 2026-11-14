@@ -1,5 +1,5 @@
 ---
-title: Siapkan Proyek Lokal dengan Dockerfile, .dockerignore, & Docker Compose
+title: "Proyek lokal siap CI/CD: Dockerfile, .dockerignore, Compose"
 date: 2026-11-14T11:03:00+07:00
 categories:
   - DevOps
@@ -11,7 +11,7 @@ tags:
   - dockerfile
   - vps
   - pemula
-description: Cara menyusun struktur proyek lokal yang siap untuk CI/CD dan VPS dengan Dockerfile multi-stage, .dockerignore, pemisahan .env, serta compose lokal dan produksi.
+description: "Susun proyek lokal yang siap CI/CD dan VPS: Dockerfile multi-stage, .dockerignore, pemisahan .env, serta compose lokal dan produksi."
 ---
 
 Setelah Docker terpasang di laptop dan VPS, kesalahan berikutnya yang sering membuat alur deploy berantakan adalah mencampur konfigurasi laptop dengan konfigurasi VPS—misalnya file `.env` rahasia ikut masuk image, atau VPS malah menjalankan mode *development* (`nodemon`) bukannya mode produksi!

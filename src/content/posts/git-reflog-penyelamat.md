@@ -1,5 +1,5 @@
 ---
-title: "Penyelamat terakhir waktu salah reset atau hapus branch: git reflog"
+title: "Salah reset atau hapus branch? Pulihkan dengan git reflog"
 date: 2026-11-11T17:00:00+07:00
 categories: ["Git"]
 tags: ["git", "tips", "pemula"]

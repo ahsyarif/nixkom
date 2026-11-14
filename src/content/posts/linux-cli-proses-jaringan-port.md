@@ -1,5 +1,5 @@
 ---
-title: Mengelola Proses Bandel, Port Terbuka, & Troubleshooting Jaringan
+title: "Proses macet, port terbuka, dan troubleshooting jaringan"
 date: 2026-11-14T12:24:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - troubleshooting
   - tips
   - pemula
-description: Trik mencari dan menghentikan proses yang macet secara beradab, menjaga pekerjaan tetap jalan saat SSH putus dengan tmux, serta mengecek port, DNS, dan HTTP dari server Linux.
+description: "Hentikan proses macet dengan aman, jaga pekerjaan tetap jalan saat SSH putus lewat tmux, lalu cek port, DNS, dan HTTP dari server Linux."
 ---
 
 Ada tiga situasi lapangan yang hampir pasti dialami setiap pemilik VPS:

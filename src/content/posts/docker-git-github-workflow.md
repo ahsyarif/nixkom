@@ -1,5 +1,5 @@
 ---
-title: Alur Git & GitHub dari Laptop ke Repository (Branch, PR, Secrets, & GHCR)
+title: "Alur Git dan GitHub: branch, PR, secrets, dan GHCR"
 date: 2026-11-14T11:04:00+07:00
 categories:
   - Git
@@ -11,7 +11,7 @@ tags:
   - ghcr
   - workflow
   - pemula
-description: Menyiapkan alur kerja Git dan GitHub yang aman sebelum mengaktifkan CI/CD otomatis ke VPS, mulai dari branch fitur, Pull Request, Branch Protection, Secrets, hingga GHCR.
+description: "Siapkan alur Git dan GitHub yang aman sebelum CI/CD otomatis ke VPS: branch fitur, Pull Request, branch protection, secrets, sampai GHCR."
 ---
 
 Kalau sebuah repository GitHub nantinya terhubung dengan sistem deploy otomatis (**CI/CD**) ke VPS produksi, kebiasaan asal `git add . && git push origin main` bisa berakibat fatal: satu typo kecil di laptopmu langsung membuat server produksi crash di depan pengguna!

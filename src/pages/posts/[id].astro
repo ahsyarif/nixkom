@@ -2,7 +2,7 @@
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
-import { SITE, getPosts, postUrl, slug, fmtDate, isoDate, readingTime, wordCount } from '../../lib/site';
+import { SITE, getPosts, postUrl, slug, summary, fmtDate, isoDate, readingTime, wordCount } from '../../lib/site';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -18,18 +18,18 @@ const { post, newer, older } = Astro.props;
 const { Content, headings } = await render(post);
 const { title, description, date, categories, tags } = post.data;
 ---
-<Base title={title} description={description} crumbs={[{ name: 'Posts', href: '/posts/' }]} headings={headings}>
+<Base title={title} description={summary(post, 160)} crumbs={[{ name: 'Artikel', href: '/posts/' }]} headings={headings} article={{ published: date, tags, categories }}>
   <article class="post-single">
     <header class="post-header">
       <h1 class="dynamic-title">{title}</h1>
       {description && <div class="post-desc">{description}</div>}
       <div class="post-meta muted">
         <div class="post-meta-dates">
-          <span>Posted <time datetime={isoDate(date)}>{fmtDate(date)}</time></span>
+          <span>Terbit <time datetime={isoDate(date)}>{fmtDate(date)}</time></span>
         </div>
         <div class="post-byline">
-          <span>By <em><a href="/about/">{SITE.author}</a></em></span>
-          <span class="readtime" title={`${wordCount(post)} words`}>{readingTime(post)} min read</span>
+          <span>Oleh <em><a href="/about/">{SITE.author}</a></em></span>
+          <span class="readtime" title={`${wordCount(post)} kata`}>{readingTime(post)} menit baca</span>
         </div>
       </div>
     </header>
@@ -52,18 +52,18 @@ const { title, description, date, categories, tags } = post.data;
 
       <div class="post-tail-bottom">
         <div class="license-wrapper">
-          This post is licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> by the author.
+          Penulis melisensikan artikel ini dengan <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.
         </div>
         <div class="share-wrapper">
-          <span class="share-label">Share</span>
-          <button type="button" class="share-btn" onclick="navigator.clipboard.writeText(window.location.href); this.title='Link copied!';" aria-label="Copy link" title="Copy link">
+          <span class="share-label">Bagikan</span>
+          <button type="button" class="share-btn" onclick="navigator.clipboard.writeText(window.location.href); this.title='Tautan disalin';" aria-label="Salin tautan" title="Salin tautan">
             <Icon name="link" size={15} />
           </button>
         </div>
       </div>
 
-      <nav class="post-navigation" aria-label="Further Reading">
-        {[['OLDER', older], ['NEWER', newer]].map(([label, p]: any) =>
+      <nav class="post-navigation" aria-label="Artikel lain">
+        {[['LEBIH LAMA', older], ['LEBIH BARU', newer]].map(([label, p]: any) =>
           p ? (
             <a href={postUrl(p)} class="post-nav-card" aria-label={`${label[0] + label.slice(1).toLowerCase()}: ${p.data.title}`}>
               <span class="nav-label">{label}</span><p>{p.data.title}</p>

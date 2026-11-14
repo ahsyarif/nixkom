@@ -1,5 +1,5 @@
 ---
-title: "Masalah SSL/HTTPS, DNS Tidak Mengarah, & Jam Server Melenceng"
+title: "SSL/HTTPS gagal, DNS belum mengarah, jam server melenceng"
 date: 2026-11-14T16:41:00+07:00
 categories:
   - Linux
@@ -14,7 +14,7 @@ tags:
   - timedatectl
   - troubleshooting
   - pemula
-description: "Cara mendiagnosis dan mengatasi error sertifikat SSL/HTTPS Let's Encrypt gagal terbit, DNS domain belum mengarah ke VPS, serta berbagai error aneh akibat jam sistem Linux melenceng."
+description: "Diagnosis sertifikat Let's Encrypt yang gagal terbit, DNS domain yang belum mengarah ke VPS, serta error aneh akibat jam sistem Linux melenceng."
 ---
 
 Di bagian penutup seri troubleshooting ini, kita membahas tiga kendala yang sering terasa "gaib" bagi pemula: domain sudah dibeli tapi situs tidak terbuka dengan sertifikat HTTPS valid, Let's Encrypt gagal menerbitkan SSL, atau tiba-tiba muncul error token kedaluwarsa/signature invalid padahal kode tidak pernah disentuh.

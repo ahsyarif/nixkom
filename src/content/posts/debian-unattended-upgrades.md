@@ -1,5 +1,5 @@
 ---
-title: "Update keamanan otomatis di Debian 13 dengan unattended-upgrades"
+title: "Update keamanan otomatis Debian 13: unattended-upgrades"
 date: 2026-11-11T21:04:00+07:00
 categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "unattended-upgrades", "apt"]

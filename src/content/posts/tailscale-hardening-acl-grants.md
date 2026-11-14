@@ -13,7 +13,7 @@ tags:
   - tailnet-lock
   - keamanan
   - zero-trust
-description: Mencegah pergerakan menyamping peretas antar-server dengan segmentasi grants berbasis tag, autogroup, pengujian policy otomatis, dan perlindungan kriptografis Tailnet Lock.
+description: "Cegah peretas berpindah antar-server lewat segmentasi grants berbasis tag, autogroup, uji policy otomatis, dan perlindungan Tailnet Lock."
 ---
 
 Di banyak jaringan VPS, kesalahan yang sering terjadi setelah semua server terhubung ke VPN adalah **membiarkan semua perangkat saling mengakses secara bebas**. Secara bawaan pun, policy awal Tailscale mengizinkan semua node di tailnet saling berkomunikasi.

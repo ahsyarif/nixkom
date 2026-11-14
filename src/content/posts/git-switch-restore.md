@@ -1,5 +1,5 @@
 ---
-title: "Berhenti pakai git checkout untuk semuanya: pakai switch dan restore"
+title: "Ganti git checkout dengan git switch dan git restore"
 date: 2026-11-11T14:00:00+07:00
 categories: ["Git"]
 tags: ["git", "tips", "pemula"]

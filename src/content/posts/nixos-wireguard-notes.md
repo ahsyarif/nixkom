@@ -1,5 +1,5 @@
 ---
-title: "Catatan Pemula: Container NixOS Deklaratif dan Jaringan WireGuard"
+title: "Container NixOS deklaratif dan WireGuard untuk pemula"
 date: 2026-11-07T09:00:00+07:00
 categories: ["DevOps", "NixOS", "Server", "Security"]
 tags: ["nix", "wireguard", "linux", "containers"]

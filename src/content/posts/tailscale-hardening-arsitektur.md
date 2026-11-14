@@ -1,5 +1,5 @@
 ---
-title: Cara Kerja & Arsitektur Mengamankan Server Linux dengan Tailscale
+title: "Cara kerja Tailscale untuk mengamankan server Linux"
 date: 2026-11-14T10:00:00+07:00
 categories:
   - Linux
@@ -12,7 +12,7 @@ tags:
   - keamanan
   - zero-trust
   - pemula
-description: Memahami bagaimana Tailscale mengubah cara mengamankan server Linux dari membuka banyak port manajemen ke publik menjadi jaringan privat terenkripsi zero-trust, beserta hal-hal yang tetap wajib dijaga.
+description: "Tailscale memindahkan port manajemen server Linux dari internet publik ke jaringan privat zero-trust. Begini cara kerjanya dan yang tetap wajib dijaga."
 ---
 
 Kalau kamu baru menyewa VPS Linux (Debian atau Ubuntu), salah satu hal pertama yang bikin kaget adalah melihat log login server: baru online beberapa jam saja, sudah ada ribuan percobaan masuk ke port `22` (SSH) dari alamat IP asing di seluruh dunia.

@@ -8,8 +8,10 @@ export const getStaticPaths = (async ({ paginate }) =>
   paginate(await getPosts(), { pageSize: SITE.pageSize })) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
+const n = page.currentPage;
+const title = n > 1 ? `Artikel, halaman ${n}` : 'Artikel';
 ---
-<Base title="Posts">
-  <h1 class="dynamic-title">Posts</h1>
+<Base title={title} description={`Semua artikel nixkom.id tentang server Linux, DevOps, keamanan, dan jaringan, diurutkan dari yang terbaru.${n > 1 ? ` Halaman ${n}.` : ''}`}>
+  <h1 class="dynamic-title">{title}</h1>
   <PostList posts={page.data} prevUrl={page.url.prev} nextUrl={page.url.next} current={page.currentPage} total={page.lastPage} />
 </Base>

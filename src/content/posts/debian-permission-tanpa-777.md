@@ -1,5 +1,5 @@
 ---
-title: "Permission file di Debian 13: perbaiki upload tanpa chmod 777"
+title: "Permission file Debian 13: perbaiki upload tanpa chmod 777"
 date: 2026-11-11T21:05:00+07:00
 categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "permission", "chmod"]

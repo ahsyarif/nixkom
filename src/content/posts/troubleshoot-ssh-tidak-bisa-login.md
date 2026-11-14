@@ -1,5 +1,5 @@
 ---
-title: "SSH Tidak Bisa Login? Cara Atasi Connection Refused, Timeout, & Terkunci Sendiri"
+title: "SSH tidak bisa login? Atasi refused, timeout, dan terkunci"
 date: 2026-11-14T16:35:00+07:00
 categories:
   - Linux
@@ -12,7 +12,7 @@ tags:
   - fail2ban
   - ufw
   - pemula
-description: "Langkah diagnosis cepat ketika gagal SSH ke server Linux: membedakan Connection refused, Connection timed out, dan Permission denied (publickey), serta cara membuka blokir Fail2ban atau UFW lewat konsol darurat."
+description: "Gagal SSH ke server Linux? Bedakan Connection refused, timed out, dan Permission denied (publickey), lalu buka blokir Fail2ban atau UFW lewat konsol."
 ---
 
 Momen paling mendebarkan bagi pemula pemilik VPS adalah ketika mengetik `ssh user@ip-server`, lalu tiba-tiba gagal masuk. Pesan errornya bermacam-macam, dan cara memperbaikinya berbeda total tergantung pesan apa yang muncul.

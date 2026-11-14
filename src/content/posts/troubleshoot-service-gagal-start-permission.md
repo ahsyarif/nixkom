@@ -1,5 +1,5 @@
 ---
-title: "Service Systemd Gagal Start & Error 403 Forbidden / Permission Denied"
+title: "systemd gagal start, 403 Forbidden, dan permission denied"
 date: 2026-11-14T16:40:00+07:00
 categories:
   - Linux
@@ -12,7 +12,7 @@ tags:
   - permission
   - troubleshooting
   - pemula
-description: "Cara melacak penyebab service systemd gagal start atau restart terus-menerus, serta menelusuri error 403 Forbidden dan Permission denied secara menyeluruh dengan journalctl dan namei -l."
+description: "Lacak penyebab service systemd gagal start atau restart terus, lalu telusuri error 403 Forbidden dan Permission denied dengan journalctl dan namei -l."
 ---
 
 Dua error ini hampir pasti ditemui setiap developer yang men-deploy aplikasi sendiri ke VPS Linux:

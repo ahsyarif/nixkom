@@ -6,7 +6,7 @@ const { posts, prevUrl, nextUrl, current, total } = Astro.props as {
 };
 ---
 <div id="post-list">
-  {posts.length === 0 && <p class="muted">No posts yet.</p>}
+  {posts.length === 0 && <p class="muted">Belum ada artikel.</p>}
   {posts.map((p) => (
     <article class="post-card">
       <a href={postUrl(p)} class="post-preview">
@@ -26,7 +26,7 @@ const { posts, prevUrl, nextUrl, current, total } = Astro.props as {
             {p.data.pin && (
               <div class="pin">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
-                <span>Pinned</span>
+                <span>Disematkan</span>
               </div>
             )}
           </div>
@@ -36,9 +36,9 @@ const { posts, prevUrl, nextUrl, current, total } = Astro.props as {
   ))}
 </div>
 {total > 1 && (
-  <nav class="pagination" aria-label="Page Navigation">
-    {prevUrl ? <a href={prevUrl} class="page-btn">‹</a> : <span class="page-btn disabled">‹</span>}
+  <nav class="pagination" aria-label="Pindah halaman">
+    {prevUrl ? <a href={prevUrl} class="page-btn" aria-label="Halaman sebelumnya">‹</a> : <span class="page-btn disabled" aria-label="Halaman sebelumnya">‹</span>}
     <span class="page-info">{current} / {total}</span>
-    {nextUrl ? <a href={nextUrl} class="page-btn">›</a> : <span class="page-btn disabled">›</span>}
+    {nextUrl ? <a href={nextUrl} class="page-btn" aria-label="Halaman berikutnya">›</a> : <span class="page-btn disabled" aria-label="Halaman berikutnya">›</span>}
   </nav>
 )}

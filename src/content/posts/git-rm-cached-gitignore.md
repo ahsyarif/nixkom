@@ -1,5 +1,5 @@
 ---
-title: "Kenapa .gitignore nggak mempan? Cara hapus berkas yang telanjur masuk Git"
+title: ".gitignore nggak mempan? Lepas berkas yang sudah dilacak Git"
 date: 2026-11-11T15:00:00+07:00
 categories: ["Git"]
 tags: ["git", "tips", "pemula"]

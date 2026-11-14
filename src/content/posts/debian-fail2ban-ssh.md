@@ -1,5 +1,5 @@
 ---
-title: "Fail2ban untuk SSH di Debian 13: backend systemd dan jail sshd"
+title: "Fail2ban SSH di Debian 13: backend systemd dan jail sshd"
 date: 2026-11-11T21:06:00+07:00
 categories: ["Linux", "Server", "Security"]
 tags: ["debian", "linux", "keamanan", "pemula", "fail2ban", "ssh"]

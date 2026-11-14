@@ -35,14 +35,14 @@ document.querySelectorAll<HTMLPreElement>('.post-content pre.astro-code').forEac
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'copy-btn';
-  btn.setAttribute('aria-label', 'Copy code');
-  btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy</span>`;
+  btn.setAttribute('aria-label', 'Salin kode');
+  btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Salin</span>`;
   btn.onclick = () => {
     navigator.clipboard.writeText(pre.innerText);
-    btn.querySelector('span')!.textContent = 'Copied!';
+    btn.querySelector('span')!.textContent = 'Disalin';
     btn.classList.add('copied');
     setTimeout(() => {
-      btn.querySelector('span')!.textContent = 'Copy';
+      btn.querySelector('span')!.textContent = 'Salin';
       btn.classList.remove('copied');
     }, 1600);
   };
@@ -57,7 +57,7 @@ headings.forEach((h) => {
   const a = document.createElement('a');
   a.href = `#${h.id}`;
   a.className = 'anchor';
-  a.setAttribute('aria-label', `Link to ${h.textContent}`);
+  a.setAttribute('aria-label', `Tautan ke ${h.textContent}`);
   a.textContent = '#';
   h.appendChild(a);
 });
@@ -105,7 +105,7 @@ searchInput.addEventListener('input', async () => {
   ).slice(0, 8);
   searchResults.innerHTML = hits.length
     ? hits.map((h) => `<a href="${h.permalink}" class="search-hit"><strong>${esc(h.title)}</strong><div class="search-hit-meta"><span>${h.date}</span>${h.categories.length ? ` · <span>${esc(h.categories.join(', '))}</span>` : ''}</div><p>${esc(h.summary)}</p></a>`).join('')
-    : '<div class="search-empty">Oops! No results found.</div>';
+    : '<div class="search-empty">Tidak ada artikel yang cocok. Coba kata kunci lain.</div>';
   searchResults.hidden = false;
 });
 

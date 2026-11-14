@@ -1,5 +1,5 @@
 ---
-title: "Website 502 Bad Gateway, 504 Timeout, & Port Bentrok (EADDRINUSE)"
+title: "Error 502 Bad Gateway, 504 Timeout, dan port bentrok"
 date: 2026-11-14T16:38:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - ss
   - troubleshooting
   - pemula
-description: "Panduan cepat membedakan dan memperbaiki error 502 Bad Gateway, 504 Gateway Timeout, serta konflik port EADDRINUSE pada reverse proxy dan aplikasi backend di server Linux."
+description: "Bedakan dan perbaiki 502 Bad Gateway, 504 Gateway Timeout, serta konflik port EADDRINUSE antara reverse proxy dan aplikasi backend di server Linux."
 ---
 
 Saat mengelola aplikasi web dengan reverse proxy seperti **Nginx** atau **Caddy**, dua kode error HTTP ini paling sering membuat pemula bingung: **`502 Bad Gateway`** dan **`504 Gateway Timeout`**.

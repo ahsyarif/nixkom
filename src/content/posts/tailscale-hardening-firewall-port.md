@@ -1,5 +1,5 @@
 ---
-title: Kunci Firewall Server Linux (UFW & tailscale0) Lalu Tutup Port Publik
+title: "Kunci firewall UFW ke tailscale0 dan tutup port publik"
 date: 2026-11-14T10:02:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - firewall
   - docker
   - keamanan
-description: Langkah menutup port SSH 22 dan port manajemen dari internet publik memakai UFW, mengizinkan akses hanya lewat interface tailscale0, serta menghindari jebakan Docker yang menembus firewall.
+description: "Tutup port SSH 22 dan port manajemen dari internet dengan UFW, izinkan akses hanya lewat tailscale0, dan hindari jebakan Docker yang menembus firewall."
 ---
 
 Di bagian sebelumnya, server Linux-mu sudah masuk ke jaringan privat Tailscale menggunakan identitas `tag:`. Namun sampai tahap ini, port `22` (SSH) dan mungkin port lain masih **terbuka lebar ke seluruh internet publik**.

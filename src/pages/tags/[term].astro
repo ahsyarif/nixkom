@@ -8,7 +8,7 @@ export async function getStaticPaths() {
 }
 const { name, posts } = Astro.props;
 ---
-<Base title={name} crumbs={[{ name: 'Tags', href: '/tags/' }]}>
+<Base title={name} description={`${posts.length} artikel bertag ${name} di nixkom.id. Terbaru: ${posts[0].data.title}.`} crumbs={[{ name: 'Tag', href: '/tags/' }]}>
   <div id="page-term">
     <h1 class="term-heading">
       <Icon name="tags" size={20} />

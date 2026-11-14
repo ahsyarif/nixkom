@@ -2,7 +2,7 @@
 import Base from './Base.astro';
 const { frontmatter } = Astro.props;
 ---
-<Base title={frontmatter.title}>
+<Base title={frontmatter.title} description={frontmatter.description}>
   <article class="post-single">
     <header class="post-header"><h1 class="dynamic-title">{frontmatter.title}</h1></header>
     <div class="post-content"><slot /></div>

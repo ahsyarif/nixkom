@@ -1,5 +1,5 @@
 ---
-title: Cara Install Docker di Linux (Ubuntu, Debian, Fedora, RHEL/Rocky)
+title: "Install Docker di Ubuntu, Debian, Fedora, dan RHEL/Rocky"
 date: 2026-11-14T11:01:00+07:00
 categories:
   - DevOps
@@ -13,7 +13,7 @@ tags:
   - fedora
   - vps
   - pemula
-description: Tutorial memasang Docker Engine resmi beserta Docker Compose v2 di Ubuntu, Debian, Fedora, RHEL, Rocky Linux, dan AlmaLinux lengkap dengan setup grup docker dan verifikasi.
+description: "Pasang Docker Engine resmi dan Compose v2 di Ubuntu, Debian, Fedora, RHEL, Rocky Linux, dan AlmaLinux, lengkap dengan grup docker dan verifikasi."
 ---
 
 Di Linux—baik untuk laptop kerjamu maupun untuk **VPS produksi**—kita tidak memasang Docker Desktop yang berat. Kita memasang **Docker Engine** langsung di atas sistem operasi sehingga sangat ringan, cepat, dan hemat RAM.

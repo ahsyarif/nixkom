@@ -1,5 +1,5 @@
 ---
-title: "apt / dpkg Error: Mengatasi Lock Error, Update Terputus, & Repo Gagal"
+title: "Error apt dan dpkg: lock, update terputus, dan repo gagal"
 date: 2026-11-14T16:39:00+07:00
 categories:
   - Linux
@@ -13,7 +13,7 @@ tags:
   - dpkg
   - troubleshooting
   - pemula
-description: "Cara memperbaiki error apt dan dpkg di Ubuntu/Debian secara aman: mengatasi Could not get lock /var/lib/dpkg/lock-frontend, pemulihan dpkg --configure -a akibat update terputus, dan error GPG/404 repositori."
+description: "Perbaiki error apt dan dpkg di Ubuntu/Debian dengan aman: Could not get lock, dpkg --configure -a setelah update terputus, serta error GPG/404 repo."
 ---
 
 Saat ingin memasang paket baru atau memperbarui sistem Debian/Ubuntu, pemula sering langsung panik ketika `apt` mengeluarkan pesan merah seperti:

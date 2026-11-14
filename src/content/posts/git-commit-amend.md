@@ -1,5 +1,5 @@
 ---
-title: "Rapikan commit terakhir sebelum push dengan git commit --amend"
+title: "Rapikan commit terakhir sebelum push: git commit --amend"
 date: 2026-11-11T20:00:00+07:00
 categories: ["Git"]
 tags: ["git", "tips", "pemula"]

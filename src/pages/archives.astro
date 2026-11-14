@@ -5,10 +5,10 @@ import { getPosts, postUrl } from '../lib/site';
 const posts = await getPosts();
 const years = Map.groupBy(posts, (p) => p.data.date.getFullYear());
 const two = (n: number) => String(n).padStart(2, '0');
-const mon = (d: Date) => d.toLocaleDateString('en-US', { month: 'short' });
+const mon = (d: Date) => d.toLocaleDateString('id-ID', { month: 'short' });
 ---
-<Base title="Archives">
-  <h1 class="dynamic-title">Archives</h1>
+<Base title="Arsip" description={`Arsip ${posts.length} artikel nixkom.id, dikelompokkan per tahun terbit.`}>
+  <h1 class="dynamic-title">Arsip</h1>
   <div id="archives">
     {[...years].map(([year, ps]) => (
       <>
