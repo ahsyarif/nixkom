@@ -109,4 +109,3 @@ Sekarang setelah kamu memahami **"mengapa"** di balik protokol-protokol internet
 
 - [WireGuard Official Documentation: Protocol & Cryptography](https://www.wireguard.com/)
 - [Tailscale Docs: Secure an Ubuntu/Linux server with UFW](https://tailscale.com/docs/how-to/secure-ubuntu-server-with-ufw)
-- [Artikel Terkait: Container NixOS Deklaratif dan Jaringan WireGuard](/posts/nixos-wireguard-notes/)
